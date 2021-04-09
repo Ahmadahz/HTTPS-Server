@@ -13,7 +13,6 @@ session::session(boost::asio::io_service& io_service)
 {
 }
 
-//Confusion about thi one, why not session::tcp::socket&
 tcp::socket& session::socket()
 {
   return socket_;

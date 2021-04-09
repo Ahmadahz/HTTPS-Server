@@ -37,10 +37,14 @@ include_directories(include)
 # RESOLVED: Update name and srcs
 add_library(session_lib src/session.cc)
 add_library(server_lib src/server.cc)
+add_library(config_parser src/config_parser.cc)
 
 # RESOLVED: Update executable name, srcs, and deps
 add_executable(server src/server_main.cc)
 target_link_libraries(server server_lib session_lib Boost::system Boost::thread)
+add_executable(config_parser_main src/config_parser_main.cc)
+target_link_libraries(server config_parser)
+target_link_libraries(config_parser_main config_parser)
 
 # RESOLVED: Update test executable name, srcs, and deps
 add_executable(server_test tests/server_test.cc)
