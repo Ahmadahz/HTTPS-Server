@@ -31,6 +31,9 @@ void session::handle_read(const boost::system::error_code& error,
 {
   if (!error)
   {
+    // Implements the basic http echo requests from assignment 2.
+    // Uses double newline characters to detect end of requests.
+    
     std::string request = data_;
     if (request.find("\r\n\r\n") == std::string::npos &&
 	request.find("\n\n") == std::string::npos) {

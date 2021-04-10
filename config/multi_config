@@ -1,0 +1,14 @@
+a "token";
+
+http {
+     razz matazz;
+     client {
+     	    blank statement;
+     }
+
+     server {
+     	    foo "bar";
+	    listen 8080;
+	    root html;
+     }
+}

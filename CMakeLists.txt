@@ -48,9 +48,13 @@ target_link_libraries(config_parser_main config_parser)
 
 # RESOLVED: Update test executable name, srcs, and deps
 add_executable(server_test tests/server_test.cc)
-target_link_libraries(server_test server_lib session_lib Boost::system Boost::thread gtest_main)
+target_link_libraries(server_test server_lib session_lib Boost::system Boost::thread gtest_main config_parser)
+
+add_executable(config_parser_test tests/config_parser_test.cc)
+target_link_libraries(config_parser_test config_parser gtest_main)
 
 # RESOLVED: Update with test binary
+gtest_discover_tests(config_parser_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 gtest_discover_tests(server_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
 # RESOLVED: Update with target/test targets

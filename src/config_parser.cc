@@ -25,6 +25,10 @@ std::string NginxConfig::ToString(int depth) {
   return serialized_config;
 }
 
+void NginxConfig::Reset() {
+  statements_.clear();
+}
+
 std::string NginxConfigStatement::ToString(int depth) {
   std::string serialized_statement;
   for (int i = 0; i < depth; ++i) {
@@ -323,4 +327,70 @@ bool NginxConfigParser::Parse(const char* file_name, NginxConfig* config) {
       Parse(dynamic_cast<std::istream*>(&config_file), config);
   config_file.close();
   return return_value;
+}
+
+bool NginxConfigParser::GetPortNumber(const NginxConfig& out_config, short& port_number) {
+  std::vector<std::shared_ptr<NginxConfigStatement>> statements;
+  statements = out_config.statements_;
+
+  // Searches each statement found by the parser for the port number.
+  // A config statement is either a single line of tokens or an entire code block.
+  for (int i = 0; i < statements.size(); ++i) {
+
+    // Assumes that the statement containing the port number is of the form:
+    // http {
+    //    ...
+    //    listen  XX;
+    // }
+    // where `http' is the token (hence size being 1).
+    // The token size check is to ensure that the config file is properly formed
+    // in a way that the config parser doesn't currently check for.
+    if (statements[i]->tokens_.size() == 1 &&
+	statements[i]->tokens_[0] == "http") {
+      std::string port_statement = statements[i]->ToString(0);
+      size_t port_pos = port_statement.find("listen");
+
+      if (port_pos != std::string::npos) {
+	port_pos += 6; // Go to position after the end of "listen"
+
+	// Ignore whitespace after "listen" is found in search of start and end
+	// positions of the port number.
+	size_t port_start_pos = port_statement.find_first_not_of(" \t\n\r",
+								 port_pos);
+	size_t port_end_pos = port_statement.find_first_of(" \t;",
+							  port_start_pos);
+
+	// No port number found between `listen' and `;'.
+	if (port_end_pos == port_start_pos) {
+	  std::cerr << "No port number provided." << std::endl;
+	  return false;
+	}
+	
+	std::string port = port_statement.substr(port_start_pos,
+						 port_end_pos - port_start_pos);
+        
+	if (port.find_first_not_of("0123456789") != std::string::npos) {
+	  std::cerr << "Port number must be a postive integer. Port given: " + \
+	    port << std::endl;
+	  return false;
+	}
+
+	int int_port = stoi(port);
+	if (int_port < 0 || int_port > 65535) {
+	  std::cerr << "Port numbers must be between 0 and 65535." << std::endl;
+	  return false;
+	}
+	
+	port_number = int_port;
+
+        return true;
+      }
+      else {
+	std::cerr << "\"listen\" token not found." << std::endl;
+	return false;
+      }
+    }
+  }
+
+  return false;
 }

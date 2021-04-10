@@ -20,6 +20,9 @@ class NginxConfig {
  public:
   std::string ToString(int depth = 0);
   std::vector<std::shared_ptr<NginxConfigStatement>> statements_;
+
+  // Empties the statements_ vector.
+  void Reset();
 };
 
 // The driver that parses a config file and generates an NginxConfig.
@@ -32,6 +35,10 @@ class NginxConfigParser {
   // iff the input config file is valid.
   bool Parse(std::istream* config_file, NginxConfig* config);
   bool Parse(const char* file_name, NginxConfig* config);
+
+  // Accepts a valid NginxConfig object and stores the found HTTP port number
+  // in out-param port_number. Returns true if a valid port number was found.
+  bool GetPortNumber(const NginxConfig& out_config, short& port_number);
 
  private:
   enum TokenType {
