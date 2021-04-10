@@ -14,18 +14,24 @@ RUN ctest --output-on_failure
 
 ### Deploy container ###
 # Define deploy stage
-FROM ubuntu:latest as deploy
+FROM ubuntu:focal as deploy
 
-# TODO(!): Copy server output binary to "."
-# COPY --from=builder /usr/src/project/build/bin/example_server .
+# TODO(ahmadhz): Copy server output binary to "."
+COPY --from=builder /usr/src/project/build/bin/server .
+# Copy configuration file output to "." (Was required from the instructions)
+COPY --from=builder /usr/src/project/config/multi_config .
 
-# TODO(!): Expose some port(s)
-# EXPOSE 80
+# TODO(ahmadhz): Expose some port(s)
+# Note: Add more ports if it is required
+EXPOSE 80
 
 # Use ENTRYPOINT to specify the binary name
-# TODO(!): Update with real server name
-# ENTRYPOINT ["./example_server"]
+# TODO(ahmadhz): Update with real server name 
+# Note: The entry point cannot be changed
+ENTRYPOINT ["./server"]
 
 # Use CMD to specify arguments to ENTRYPOINT
-# TODO(!): Update with real server args
-# CMD [""]
+# TODO(ahmadhz): Update with real server args
+# Note: The argument can be overwritten
+# Note: We can add more arguments later
+CMD ["multi_config"]
