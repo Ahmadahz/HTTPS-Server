@@ -19,7 +19,7 @@ FROM ubuntu:focal as deploy
 # TODO(ahmadhz): Copy server output binary to "."
 COPY --from=builder /usr/src/project/build/bin/server .
 # Copy configuration file output to "." (Was required from the instructions)
-COPY --from=builder /usr/src/project/config/multi_config .
+COPY --from=builder /usr/src/project/config/server_config .
 
 # TODO(ahmadhz): Expose some port(s)
 # Note: Add more ports if it is required
@@ -34,4 +34,4 @@ ENTRYPOINT ["./server"]
 # TODO(ahmadhz): Update with real server args
 # Note: The argument can be overwritten
 # Note: We can add more arguments later
-CMD ["multi_config"]
+CMD ["server_config"]
