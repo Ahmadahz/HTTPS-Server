@@ -5,8 +5,7 @@
 
 using boost::asio::ip::tcp;
 
-class session
-{
+class session {
 public:
   session(boost::asio::io_service& io_service);
   tcp::socket& socket();

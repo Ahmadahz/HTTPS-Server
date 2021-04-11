@@ -47,7 +47,8 @@ std::string NginxConfigStatement::ToString(int depth) {
       serialized_statement.append("  ");
     }
     serialized_statement.append("}");
-  } else {
+  } 
+  else {
     serialized_statement.append(";");
   }
   serialized_statement.append("\n");
@@ -109,7 +110,7 @@ NginxConfigParser::TokenType NginxConfigParser::ParseToken(std::istream* input,
 	    if (c == '\\') {
 	      const char ch = input->get();
 	      if (!input->good() || input->fail()) {
-		break;
+          break;
 	      }
 	      if (ch == ' ' || ch == '\t' || ch == ';' ||
 		  ch == '{' || ch == '}' || ch == '#') {

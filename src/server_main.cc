@@ -17,8 +17,7 @@ using boost::asio::ip::tcp;
 #include "server.h"
 #include "config_parser.h"
 
-int main(int argc, char* argv[])
-{
+int main(int argc, char* argv[]) {
   try {
     if (argc != 2) {
       std::cerr << "Usage: server <config_file>\n";
@@ -33,11 +32,11 @@ int main(int argc, char* argv[])
     if (parser.Parse(argv[1], &out_config)) {
       short port_number;
       if (parser.GetPortNumber(out_config, port_number)) {
-	server s(io_service, port_number);
-	io_service.run();
+				server s(io_service, port_number);
+				io_service.run();
       }
       else {
-	return 1;
+				return 1;
       }
     }
     else {

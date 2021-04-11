@@ -7,8 +7,7 @@ using boost::asio::ip::tcp;
 
 #include "session.h"
 
-class server
-{
+class server {
 public:
   server(boost::asio::io_service& io_service, short port);
 
