@@ -23,4 +23,11 @@ steps:
     '-t', 'gcr.io/$PROJECT_ID/lark:latest',
     '.'
   ]
+- name: 'gcr.io/cloud-builders/docker'
+  args: [
+    'build',
+    '-f', 'docker/coverage.Dockerfile',
+    '-t', 'gcr.io/$PROJECT_ID/lark:latest',
+    '.'
+  ]
 images: ['gcr.io/$PROJECT_ID/lark:base', 'gcr.io/$PROJECT_ID/lark:latest']
