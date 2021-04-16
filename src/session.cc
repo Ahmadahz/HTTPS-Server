@@ -2,6 +2,7 @@
 #include <iostream>
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
+#include <boost/log/trivial.hpp>
 
 #include "session.h"
 
@@ -17,6 +18,7 @@ tcp::socket& session::socket() {
 }
 
 void session::start() {
+  BOOST_LOG_TRIVIAL(trace) << "In session::start()";
   socket_.async_read_some(boost::asio::buffer(data_, max_length),
       boost::bind(&session::handle_read, this,
         boost::asio::placeholders::error,
@@ -26,7 +28,7 @@ void session::start() {
 void session::handle_read(const boost::system::error_code& error,
     size_t bytes_transferred) {
   if (!error) {
-    std::cerr << "In handle_read\n";
+    BOOST_LOG_TRIVIAL(trace) << "In handle_read received more messages. In Buffer:\n" << data_;
     
     // Implements the basic http echo requests from assignment 2.
     // Uses double newline characters to detect end of requests.
@@ -34,7 +36,7 @@ void session::handle_read(const boost::system::error_code& error,
     std::string request = data_;
     if (request.find("\r\n\r\n") == std::string::npos &&
         request.find("\n\n") == std::string::npos) {
-      std::cerr << "Appending data\n";
+      BOOST_LOG_TRIVIAL(trace) << "No double newline, wait for more messages";
       // Append data until double CRLF/LF is found.
       // WARNING: Assumes the request is at most `max_length' bytes.
       socket_.async_read_some(boost::asio::buffer(&data_[strlen(data_)], max_length),
@@ -54,7 +56,7 @@ void session::handle_read(const boost::system::error_code& error,
       response += data_;
       strncpy(data_, response.c_str(), response.size());
 
-      std::cerr << response << std::endl;
+      BOOST_LOG_TRIVIAL(trace) << "Returning following response\n" << response << std::endl;
     
       boost::asio::async_write(socket_,
         boost::asio::buffer(data_, strlen(data_)),
@@ -72,17 +74,17 @@ void session::handle_read(const boost::system::error_code& error,
 void session::handle_write(const boost::system::error_code& error)
 {
   if (!error) {
-    std::cerr << "Attempting to read in handle_write\n";
+    BOOST_LOG_TRIVIAL(trace) << "Attempting to read in handle_write";
     socket_.async_read_some(boost::asio::buffer(data_, max_length),
         boost::bind(&session::handle_read, this,
           boost::asio::placeholders::error,
           boost::asio::placeholders::bytes_transferred));
 
-    std::cerr << "Past read_some in handle_write\n";
+    BOOST_LOG_TRIVIAL(trace) << "Past read_some in handle_write. Closing socket";
     socket_.close();
   }
   else {
-    std::cerr << "Deleting in handle_write\n";
+    BOOST_LOG_TRIVIAL(trace) << "Deleting in handle_write";
     delete this;
   }
 }
