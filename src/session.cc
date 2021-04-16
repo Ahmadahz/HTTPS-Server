@@ -25,6 +25,22 @@ void session::start() {
         boost::asio::placeholders::bytes_transferred));
 }
 
+bool session::end_of_request() {
+  std::string request = data_;
+  return request.find("\r\n\r\n") != std::string::npos ||
+         request.find("\n\n") != std::string::npos;
+}
+
+void session::append_data() {
+  BOOST_LOG_TRIVIAL(trace) << "No double newline, wait for more messages";
+  // Append data until double CRLF/LF is found.
+  // WARNING: Assumes the request is at most `max_length' bytes.
+  socket_.async_read_some(boost::asio::buffer(&data_[strlen(data_)], max_length),
+      boost::bind(&session::handle_read, this,
+	boost::asio::placeholders::error,
+	boost::asio::placeholders::bytes_transferred));
+}
+
 void session::handle_read(const boost::system::error_code& error,
     size_t bytes_transferred) {
   if (!error) {
@@ -33,17 +49,9 @@ void session::handle_read(const boost::system::error_code& error,
     // Implements the basic http echo requests from assignment 2.
     // Uses double newline characters to detect end of requests.
     
-    std::string request = data_;
-    if (request.find("\r\n\r\n") == std::string::npos &&
-        request.find("\n\n") == std::string::npos) {
-      BOOST_LOG_TRIVIAL(trace) << "No double newline, wait for more messages";
-      // Append data until double CRLF/LF is found.
-      // WARNING: Assumes the request is at most `max_length' bytes.
-      socket_.async_read_some(boost::asio::buffer(&data_[strlen(data_)], max_length),
-          boost::bind(&session::handle_read, this,
-            boost::asio::placeholders::error,
-            boost::asio::placeholders::bytes_transferred));
-    } 
+    if (!end_of_request()) {
+      append_data();
+    }
     else {
       std::string response;
       response += "    \n"; // This line here is needed because otherwise the

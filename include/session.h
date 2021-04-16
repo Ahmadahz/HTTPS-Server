@@ -13,6 +13,8 @@ public:
   void start();
 
 private:
+  bool end_of_request();
+  void append_data();
   void handle_read(const boost::system::error_code& error,
       size_t bytes_transferred);
   void handle_write(const boost::system::error_code& error);
