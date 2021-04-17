@@ -18,11 +18,26 @@ diff test_hello ${RESPONSE_PATH}/hello_response
 
 if [[ $? -eq 0 ]]; then
     echo "SUCCESS";
-    exit 0; 
 else 
     echo "FAIL"; 
-    sudo kill -9 $pid_server
+    kill -9 $pid_server
     exit 1;
 fi
 
-exit 0;
+response=$(printf '%s\r\n%s\r\n%s\r\n'  \
+    "GET / HTTP/1.1"                    \
+    "Host: www.test.com"                \
+    "Connection: close"                 \
+    | nc 35.197.104.232 80) &
+pid=$!
+sleep 1 && kill -9 $pid
+echo -n "Test 2:..."
+if [[ $response = "" ]]; then 
+    echo "SUCCESS"; 
+else 
+    echo "FAIL"; 
+    kill -9 $pid_server
+    exit 1;
+fi
+kill -9 $pid_server
+exit 0
