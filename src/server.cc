@@ -14,12 +14,24 @@ server::server(boost::asio::io_service& io_service, short port)
   start_accept();
 }
 
+server::server(session& new_session, boost::asio::io_service& io_service, short port)
+  : io_service_(io_service),
+    acceptor_(io_service, tcp::endpoint(tcp::v4(), port)) {
+  start_accept(&new_session);
+}
+
 void server::start_accept() {
+  session* new_session = new session(io_service_);
+  start_accept(new_session);
+}
+
+void server::start_accept(session* new_session) {
   BOOST_LOG_TRIVIAL(trace) << "In server::start_accept()";
-  this->new_session = new session(io_service_);
+  
   acceptor_.async_accept(new_session->socket(),
       boost::bind(&server::handle_accept, this, new_session,
-        boost::asio::placeholders::error));
+	          boost::asio::placeholders::error));
+
   BOOST_LOG_TRIVIAL(trace) << "In server::start_accept(), after async_accept()";
 }
 

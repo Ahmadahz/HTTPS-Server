@@ -18,15 +18,23 @@ class ServerTest : public ::testing::Test {
 protected:
   boost::asio::io_service io_service0;
   const boost::system::error_code err = make_error_code(boost::system::errc::success);
+
+  session* create_session() {
+    return new session(io_service0);
+  }
 };
 
 using ::testing::AtLeast; 
 using ::testing::_; 
 
 // Just tests that session is created and that with that created session handle_accept() can be called
-TEST_F(ServerTest, SessionCreationAndStartTest) {
+TEST_F(ServerTest, BasicSessionCreation) {
   server test_server(io_service0, 8080);
-  session* test_session = test_server.new_session;
+}
+
+TEST_F(ServerTest, HandleAccept) {
+  session* test_session = create_session();
+  server test_server(*test_session, io_service0, 8080);
   test_server.handle_accept(test_session, err);
-  EXPECT_TRUE(true);
+  delete test_session;
 }

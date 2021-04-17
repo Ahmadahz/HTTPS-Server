@@ -11,13 +11,20 @@ using boost::asio::ip::tcp;
 class server {
 public:
   server(boost::asio::io_service& io_service, short port);
-  session* new_session;
+
+  /* This constructor was initially intended for unit testing.
+     WARNING: @new_session should be initialized with @io_service prior
+              to this constructor being called. */
+  server(session& new_session, boost::asio::io_service& io_service, short port);
 
   void handle_accept(session* new_session,
       const boost::system::error_code& error);
-
+  
 private:
   void start_accept();
+
+  /* Overload allows for easier unit testing. */
+  void start_accept(session* new_session);
  
   boost::asio::io_service& io_service_;
   tcp::acceptor acceptor_;

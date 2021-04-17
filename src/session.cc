@@ -34,12 +34,32 @@ bool session::end_of_request() {
 
 void session::append_data() {
   BOOST_LOG_TRIVIAL(trace) << "No double newline, wait for more messages";
+  
   // Append data until double CRLF/LF is found.
   // WARNING: Assumes the request is at most `max_length' bytes.
   socket_.async_read_some(boost::asio::buffer(&data_[strlen(data_)], max_length),
       boost::bind(&session::handle_read, this,
 	boost::asio::placeholders::error,
 	boost::asio::placeholders::bytes_transferred));
+}
+
+void session::build_response() {
+  std::string response;
+  response += "    \n"; // This line here is needed because otherwise the
+			// the HTTP header disappears in the browser.
+			// Otherwise, it works in the terminal.
+
+  response += "HTTP/1.1 200 OK\r\n";
+  response += "Content-Type: text/plain\r\n";
+  response += "\r\n";
+  response += data_;
+  fill_data_with(response);
+
+  BOOST_LOG_TRIVIAL(trace) << "Returning following response:\n" << response << std::endl;
+}
+
+void session::fill_data_with(const std::string& msg) {
+  strncpy(data_, msg.c_str(), msg.size());
 }
 
 void session::handle_read(const boost::system::error_code& error,
@@ -54,18 +74,7 @@ void session::handle_read(const boost::system::error_code& error,
       append_data();
     }
     else {
-      std::string response;
-      response += "    \n"; // This line here is needed because otherwise the
-                            // the HTTP header disappears in the browser.
-                            // Otherwise, it works in the terminal.
-      
-      response += "HTTP/1.1 200 OK\r\n";
-      response += "Content-Type: text/plain\r\n";
-      response += "\r\n";
-      response += data_;
-      strncpy(data_, response.c_str(), response.size());
-
-      BOOST_LOG_TRIVIAL(trace) << "Returning following response:\n" << response << std::endl;
+      build_response();
     
       boost::asio::async_write(socket_,
         boost::asio::buffer(data_, strlen(data_)),
@@ -81,12 +90,16 @@ void session::handle_read(const boost::system::error_code& error,
 void session::handle_write(const boost::system::error_code& error)
 {
   if (!error) {
+    // TODO(?): Decide for certain if socket should be closed after receiving
+    //          the signal for the end of the first request.
+    //          If so, rename this function to something appropriate.
+    
     memset(data_, '\0', sizeof(data_));
-    BOOST_LOG_TRIVIAL(trace) << "Past read_some in handle_write. Closing socket";
+    BOOST_LOG_TRIVIAL(trace) << "Closing socket.";
     socket_.close();
   }
   else {
-    BOOST_LOG_TRIVIAL(trace) << "Deleting in handle_write";
+    BOOST_LOG_TRIVIAL(trace) << "Deleting in handle_write.";
     delete this;
   }
 }

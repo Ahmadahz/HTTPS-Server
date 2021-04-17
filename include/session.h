@@ -9,18 +9,25 @@ using boost::asio::ip::tcp;
 class session {
 public:
   session(boost::asio::io_service& io_service);
+  
   tcp::socket& socket();
+  const char* get_data() { return data_; }
   void start();
-
-  tcp::socket socket_;
-  enum { max_length = 1024 };
-  char data_[max_length];
 
   void handle_read(const boost::system::error_code& error,
       size_t bytes_transferred);
+  
   void handle_write(const boost::system::error_code& error);
+
+  void fill_data_with(const std::string& msg);
+  
+  tcp::socket socket_;
 
 private:
   bool end_of_request();
   void append_data();
+  void build_response();
+
+  enum { max_length = 1024 };
+  char data_[max_length];
 };
