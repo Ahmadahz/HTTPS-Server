@@ -19,6 +19,7 @@ tcp::socket& session::socket() {
 
 void session::start() {
   BOOST_LOG_TRIVIAL(trace) << "In session::start()";
+  memset(data_, '\0', sizeof(data_));
   socket_.async_read_some(boost::asio::buffer(data_, max_length),
       boost::bind(&session::handle_read, this,
         boost::asio::placeholders::error,
@@ -64,14 +65,12 @@ void session::handle_read(const boost::system::error_code& error,
       response += data_;
       strncpy(data_, response.c_str(), response.size());
 
-      BOOST_LOG_TRIVIAL(trace) << "Returning following response\n" << response << std::endl;
+      BOOST_LOG_TRIVIAL(trace) << "Returning following response:\n" << response << std::endl;
     
       boost::asio::async_write(socket_,
         boost::asio::buffer(data_, strlen(data_)),
           boost::bind(&session::handle_write, this,
           boost::asio::placeholders::error));
-
-      memset(data_, '\0', sizeof(data_));
     }
   }
   else {
@@ -82,12 +81,7 @@ void session::handle_read(const boost::system::error_code& error,
 void session::handle_write(const boost::system::error_code& error)
 {
   if (!error) {
-    BOOST_LOG_TRIVIAL(trace) << "Attempting to read in handle_write";
-    socket_.async_read_some(boost::asio::buffer(data_, max_length),
-        boost::bind(&session::handle_read, this,
-          boost::asio::placeholders::error,
-          boost::asio::placeholders::bytes_transferred));
-
+    memset(data_, '\0', sizeof(data_));
     BOOST_LOG_TRIVIAL(trace) << "Past read_some in handle_write. Closing socket";
     socket_.close();
   }

@@ -12,14 +12,15 @@ public:
   tcp::socket& socket();
   void start();
 
-private:
-  bool end_of_request();
-  void append_data();
+  tcp::socket socket_;
+  enum { max_length = 1024 };
+  char data_[max_length];
+
   void handle_read(const boost::system::error_code& error,
       size_t bytes_transferred);
   void handle_write(const boost::system::error_code& error);
 
-  tcp::socket socket_;
-  enum { max_length = 1024 };
-  char data_[max_length];
+private:
+  bool end_of_request();
+  void append_data();
 };
