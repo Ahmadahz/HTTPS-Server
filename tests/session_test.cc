@@ -47,6 +47,15 @@ TEST_F(SessionTest, DeleteCloseOnWriteTest) {
   EXPECT_STREQ(test_session.get_data(), expected2);
 }
 
+TEST_F(SessionTest, HandleReadError) {
+  session *test_session = new session(io_service0);
+  test_session->start();
+
+  std::string request = "Data.";
+  test_session->fill_data_with(request);
+  test_session->handle_read(fail_code, request.size());
+}
+
 TEST_F(SessionTest, HandleWriteError) {
   session *test_session = new session(io_service0);
   test_session->start();

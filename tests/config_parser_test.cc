@@ -14,13 +14,22 @@ protected:
     return dynamic_cast<std::istream*>(&ss_);
   }
 
-  bool parser_check(const std::string &str) {
-    return parser_.Parse(str_to_istream(str), &out_config_);
+  // Wrapper function for parsing files or manually inputted strings.
+  bool parser_check(const std::string& str, bool is_filename = false) {
+    out_config_.Reset();
+    if (is_filename)
+      return parser_.Parse(str.c_str(), &out_config_);
+    else
+      return parser_.Parse(str_to_istream(str), &out_config_);
   }
 };
 
 TEST_F(NginxParserTest, EmptyConfig) {
   EXPECT_TRUE(parser_check(""));
+}
+
+TEST_F(NginxParserTest, NonExistentFile) {
+  EXPECT_FALSE(parser_check("bogus.config", true));
 }
 
 TEST_F(NginxParserTest, WhitespaceConfig) {
@@ -41,6 +50,7 @@ TEST_F(NginxParserTest, NestedBracketConfig) {
 TEST_F(NginxParserTest, QuoteEscapingConfig) {
   EXPECT_TRUE(parser_check("\"\\\"\";"));
   EXPECT_TRUE(parser_check("'\\\'';"));
+  EXPECT_TRUE(parser_check("\\\'\\\'';"));
   EXPECT_TRUE(parser_check("\"bar\";"));
   EXPECT_TRUE(parser_check("\"root\"{ location \"/foo\";}"));
   EXPECT_FALSE(parser_check("foo bar #;"));
@@ -49,10 +59,23 @@ TEST_F(NginxParserTest, QuoteEscapingConfig) {
   EXPECT_TRUE(parser_check("location { /path\\ to\\ dir/;}"));
 }
 
+TEST_F(NginxParserTest, VariousEscapingConfig) {
+  EXPECT_TRUE(parser_check("Fake_comment follows \\#;"));
+  EXPECT_TRUE(parser_check("\\# This is not a comment;"));
+  EXPECT_TRUE(parser_check("root 'file \\{';"));
+  EXPECT_TRUE(parser_check("root \\path\\to\\file;"));
+}
+
 TEST_F(NginxParserTest, QuoteWhitespaceConfig) {
   EXPECT_TRUE(parser_check("'foo' bar;"));
   EXPECT_FALSE(parser_check("'foo'bar;"));
 }
+
+TEST_F(NginxParserTest, MalformedConfig) {
+  EXPECT_FALSE(parser_check("http {{ listen 8080; }}"));
+  EXPECT_FALSE(parser_check("block { }"));
+}
+
 
 class HttpEchoTest : public ::testing::Test {
 protected:
@@ -112,6 +135,11 @@ TEST_F(HttpEchoTest, NoPortConfig) {
   EXPECT_FALSE(port_number());
 }
 
+TEST_F(HttpEchoTest, NoListenKeyword) {
+  EXPECT_TRUE(parse("http { root; }"));
+  EXPECT_FALSE(port_number());
+}
+
 TEST_F(HttpEchoTest, NonDecimalPort) {
   EXPECT_TRUE(parse("http { listen number; }"));
   EXPECT_FALSE(port_number());
@@ -126,4 +154,18 @@ TEST_F(HttpEchoTest, InvalidPortNumber) {
 
   EXPECT_TRUE(parse("http { listen -1; }"));
   EXPECT_FALSE(port_number());
+}
+
+TEST_F(HttpEchoTest, IgnoreComments) {
+  EXPECT_TRUE(parse("http \r\n # Comment.\r\n { listen 1000; }"));
+  EXPECT_TRUE(port_number());
+}
+
+TEST_F(HttpEchoTest, TrailingQuotes) {
+  EXPECT_FALSE(parse("http { listen 80; } '"));
+  EXPECT_FALSE(parse("http { listen 80; } \" "));
+}
+
+TEST_F(HttpEchoTest, EscapedBackslash) {
+  EXPECT_TRUE(parse("http \\{ listen 80; \\}"));
 }

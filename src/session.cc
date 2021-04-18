@@ -83,6 +83,7 @@ void session::handle_read(const boost::system::error_code& error,
     }
   }
   else {
+    BOOST_LOG_TRIVIAL(trace) << "Deleting in handle_read.";
     delete this;
   }
 }
