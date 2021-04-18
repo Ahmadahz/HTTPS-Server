@@ -9,6 +9,7 @@ class MockSession : public session {
   MockSession(boost::asio::io_service& io_service) 
   : session(io_service) {
   }
+  
   MOCK_METHOD(void, handle_read, 
     (const boost::system::error_code& error, size_t bytes_transferred));
   MOCK_METHOD(void, start, ());
@@ -27,14 +28,22 @@ protected:
 using ::testing::AtLeast; 
 using ::testing::_; 
 
-// Just tests that session is created and that with that created session handle_accept() can be called
+// Tests that a session is created and that handle_accept() can be called
 TEST_F(ServerTest, BasicSessionCreation) {
   server test_server(io_service0, 8080);
 }
 
-TEST_F(ServerTest, HandleAccept) {
+TEST_F(ServerTest, HandleAcceptSuccess) {
   session* test_session = create_session();
   server test_server(*test_session, io_service0, 8080);
   test_server.handle_accept(test_session, err);
   delete test_session;
+}
+
+TEST_F(ServerTest, HandleAcceptFailure) {
+  session* test_session = create_session();
+  server test_server(*test_session, io_service0, 8080);
+
+  boost::system::error_code fail_error = make_error_code(boost::system::errc::connection_reset);
+  test_server.handle_accept(test_session, fail_error);
 }

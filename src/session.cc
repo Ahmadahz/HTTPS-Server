@@ -33,7 +33,7 @@ bool session::end_of_request() {
 }
 
 void session::append_data() {
-  BOOST_LOG_TRIVIAL(trace) << "No double newline, wait for more messages";
+  BOOST_LOG_TRIVIAL(trace) << "No double newline found, waiting for more data...";
   
   // Append data until double CRLF/LF is found.
   // WARNING: Assumes the request is at most `max_length' bytes.

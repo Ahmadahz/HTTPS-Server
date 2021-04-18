@@ -41,6 +41,7 @@ void server::handle_accept(session* new_session, const boost::system::error_code
     new_session->start();
   }
   else {
+    BOOST_LOG_TRIVIAL(trace) << "in server::handle_accept(). Deleting session.";
     delete new_session;
   }
 
