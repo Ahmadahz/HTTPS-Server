@@ -38,19 +38,20 @@ include_directories(include)
 add_library(session_lib src/session.cc)
 add_library(server_lib src/server.cc)
 add_library(config_parser src/config_parser.cc)
+add_library(request_handler src/handler.cc src/echo_handler.cc src/file_handler.cc)
 
 # RESOLVED: Update executable name, srcs, and deps
 add_executable(server src/server_main.cc)
-target_link_libraries(server server_lib session_lib Boost::system Boost::thread Boost::log_setup Boost::log)
+target_link_libraries(server server_lib session_lib request_handler Boost::system Boost::thread Boost::log_setup Boost::log)
 add_executable(config_parser_main src/config_parser_main.cc)
 target_link_libraries(server config_parser)
 target_link_libraries(config_parser_main config_parser)
 
 # RESOLVED: Update test executable name, srcs, and deps
 add_executable(server_test tests/server_test.cc)
-target_link_libraries(server_test server_lib session_lib Boost::system Boost::thread Boost::log_setup Boost::log gtest_main gmock_main)
+target_link_libraries(server_test server_lib session_lib request_handler Boost::system Boost::thread Boost::log_setup Boost::log gtest_main gmock_main)
 add_executable(session_test tests/session_test.cc)
-target_link_libraries(session_test session_lib Boost::system Boost::thread Boost::log_setup Boost::log gtest_main)
+target_link_libraries(session_test session_lib request_handler Boost::system Boost::thread Boost::log_setup Boost::log gtest_main)
 add_executable(config_parser_test tests/config_parser_test.cc)
 target_link_libraries(config_parser_test config_parser gtest_main)
 

@@ -5,6 +5,8 @@
 #include <boost/log/trivial.hpp>
 
 #include "session.h"
+#include "echo_handler.h"
+#include "file_handler.h"
 
 using boost::asio::ip::tcp;
 
@@ -45,14 +47,25 @@ void session::append_data() {
 
 void session::build_response() {
   std::string response;
-  response += "    \n"; // This line here is needed because otherwise the
-			// the HTTP header disappears in the browser.
-			// Otherwise, it works in the terminal.
+  Request request = RequestHandler::parse_request(data_);
+  
+  switch (request.type) {
+  case RequestType::File: {
+    FileHandler fh;
+    response = fh.generate_response(request);
+    break;
+  }
+  case RequestType::Echo: {
+    EchoHandler eh;
+    response = eh.generate_response(request);
+    break;
+  }
+  default:
+    // TODO(!): Request type was invalid. Generate an error response.
+    
+    break;
+  }
 
-  response += "HTTP/1.1 200 OK\r\n";
-  response += "Content-Type: text/plain\r\n";
-  response += "\r\n";
-  response += data_;
   fill_data_with(response);
 
   BOOST_LOG_TRIVIAL(trace) << "Returning following response:\n" << response << std::endl;
