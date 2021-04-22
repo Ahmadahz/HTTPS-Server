@@ -27,11 +27,11 @@ public:
    * Returns a Request object to be used by a file handler.
   */
   static Request parse_request(const char* request);
+  virtual std::string generate_response(const Request& request) = 0;
   
 protected:
   RequestHandler() {};
 
-  virtual std::string generate_response(const Request& request) = 0;
   
 private:
   

@@ -7,6 +7,9 @@
 using boost::asio::ip::tcp;
 
 #include "session.h"
+#include "dispatcher.h"
+#include "config_parser.h"
+
 
 class server {
 public:
@@ -16,7 +19,7 @@ public:
      WARNING: @new_session should be initialized with @io_service prior
               to this constructor being called. */
   server(session& new_session, boost::asio::io_service& io_service, short port);
-
+  void set_dispatcher(const NginxConfig &config);
   void handle_accept(session* new_session,
       const boost::system::error_code& error);
   
@@ -28,4 +31,6 @@ private:
  
   boost::asio::io_service& io_service_;
   tcp::acceptor acceptor_;
+  Dispatcher* dispatcher_;
+
 };
