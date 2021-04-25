@@ -51,15 +51,13 @@ void session::build_response() {
   
   switch (request.type) {
   case RequestType::File: {
-    auto fh = dispatcher_ -> get_request_handler(request);
-    response = fh -> generate_response(request);
-    std::cerr << "generated FileResponse: " << request.content << std::endl;
+    FileHandler fh;
+    response = fh.generate_response(request);
     break;
   }
   case RequestType::Echo: {
     EchoHandler eh;
     response = eh.generate_response(request);
-    std::cerr << "generated EchoResponse: " << request.content << std::endl;
     break;
   }
   default:

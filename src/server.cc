@@ -20,11 +20,6 @@ server::server(session& new_session, boost::asio::io_service& io_service, short 
   start_accept(&new_session);
 }
 
-void server::set_dispatcher(const NginxConfig &config) {
-  dispatcher_ = new Dispatcher(config);
-  BOOST_LOG_TRIVIAL(trace) << "In server::set_dispatcher";
-}
-
 void server::start_accept() {
   session* new_session = new session(io_service_);
   start_accept(new_session);
