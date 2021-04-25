@@ -62,13 +62,13 @@ void session::build_response() {
   }
   default:
     // TODO(!): Request type was invalid. Generate an error response.
-    
+    response = "HTTP/1.1 404 Not Found\nContent-Length: 22\nContent-Type: text/html\n\n<h1>404 Not Found</h1>";
     break;
   }
 
   fill_data_with(response);
 
-  BOOST_LOG_TRIVIAL(trace) << "Returning following response:\n" << response << std::endl;
+  //BOOST_LOG_TRIVIAL(trace) << "Returning following response:\n" << response << std::endl;
 }
 
 void session::fill_data_with(const std::string& msg) {

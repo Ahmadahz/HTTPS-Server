@@ -1,0 +1,19 @@
+http { 
+    server {
+
+        listen 80;
+
+        location /static/ FileHandler {
+            root /files;
+        }
+
+        location /static2/ FileHandler {
+            root /www2;
+        }
+
+        location /echo/ EchoHandler {
+            empty /stmt;
+        }
+       
+    }
+}

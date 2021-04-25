@@ -32,7 +32,7 @@ Request RequestHandler::parse_request(const char* request) {
 	}
 	
 	//Is this path correct?!?!?! 
-	file_path = std::regex_replace(file_path, std::regex("static"), "files/bar");
+	file_path = std::regex_replace(file_path, std::regex("static"), "bar");
 	parsed_request.path = file_path;
   }
   
