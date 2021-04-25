@@ -1,4 +1,5 @@
 #include "handler.h"
+#include <iostream>
 #include <regex>
 
 Request RequestHandler::parse_request(const char* request) {
@@ -30,10 +31,24 @@ Request RequestHandler::parse_request(const char* request) {
 			file_path = file_path + req[j];
 		}
 	}
-	
+	std::string file;
+	for( int i = file_path.length() - 1; i >= 0; i--) {	
+		if (file_path[i] == '/')
+			break;
+		file += file_path[i];
+	}
+	std::reverse(file.begin(), file.end());
+
+	// while(file_path.length() > 1 && file_path.back() != '/') {
+	// 	file = file_path.back();
+    //     file_path.pop_back();
+    // }
 	//Is this path correct?!?!?! 
-	file_path = std::regex_replace(file_path, std::regex("static"), "bar");
+	// file_path = std::regex_replace(file_path, std::regex("static"), "bar");
+	std::cerr << "file is: "  << std::endl;
+	std::cerr << "file path: " << file_path << std::endl;
 	parsed_request.path = file_path;
+	parsed_request.file = file;
   }
   
   //Find the extension type
@@ -51,7 +66,19 @@ Request RequestHandler::parse_request(const char* request) {
 			extension = extension + req[i];
 		}
 	}
+	// for (int i = 0; i < parsed_request.file.size(); ++i) {
+	// 	if (parsed_request.file[i] == ' ') { 
+	// 		break;
+	// 	}
+	// 	else if (parsed_request.file[i] == '.') { 
+	// 		extensionset = true; 
+	// 	}
+	// 	else if (extensionset) {
+	// 		extension = extension + parsed_request.file[i];
+	// 	}
+	// }
 	
+	std::cerr << "extension: " << extension << std::endl;
 	//Set the extension type
 	if (extension.compare("html") == 0){
 		parsed_request.ext = ExtType::HTML;

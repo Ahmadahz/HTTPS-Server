@@ -4,8 +4,17 @@
 #include <iostream>
 #include <streambuf>
 
-FileHandler::FileHandler() {
-  
+FileHandler::FileHandler(const NginxConfig &config, const std::string &prefix) {
+
+    this->prefix = prefix;
+    root = "/";
+    for (auto statement : config.statements_) {
+      if (statement->tokens_[0] == "root" && statement->tokens_.size() == 2) {
+        root = statement ->tokens_[1];
+      }
+    }
+	
+	std::cerr << "root is: " << root << std::endl;
 }
 
 std::string FileHandler::generate_response(const Request& request) {
@@ -17,8 +26,10 @@ std::string FileHandler::generate_response(const Request& request) {
 
   //Check the existence of the file 
   std::ifstream ifile;
-  
-  ifile.open(request.path);
+  std::cerr << "filehandler servicing: " << request.path << std::endl;
+  std::string path = root + "/" + request.file;
+  std::cerr << "possible: " << path << std::endl;
+  ifile.open(path);
   if(ifile) {
 	ifile.close();
 	//Set the OK response
@@ -45,7 +56,8 @@ std::string FileHandler::generate_response(const Request& request) {
 
 	//Set the length
 	std::string lengthR("Content-Length: ");
-	std::ifstream in_file(request.path, std::ios::binary);
+	// std::ifstream in_file(request.path, std::ios::binary);
+	std::ifstream in_file(path, std::ios::binary);
 	in_file.seekg(0, std::ios::end);
 	int file_size = in_file.tellg();
 	in_file.seekg(0, std::ios::beg);
@@ -56,7 +68,8 @@ std::string FileHandler::generate_response(const Request& request) {
 	in_file.close();
 	
 	//Get the content of the file
-	std::ifstream content_file(request.path);
+	// std::ifstream content_file(request.path);
+	std::ifstream content_file(path);
 	std::string file_contents((std::istreambuf_iterator<char>(content_file)), std::istreambuf_iterator<char>());
 	response = response + file_contents;
 	

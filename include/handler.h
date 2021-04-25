@@ -14,6 +14,7 @@ struct Request {
   
   ExtType ext;          // File extension type. Only used when type is File.
   std::string path;     // Path to the file specified by the client.
+  std::string file;
 };
 
 class RequestHandler {
@@ -27,11 +28,13 @@ public:
    * Returns a Request object to be used by a file handler.
   */
   static Request parse_request(const char* request);
+  std::string get_path(const char* request);
+  std::string get_location(const char* request);
   
+  virtual std::string generate_response(const Request& request) = 0;
 protected:
   RequestHandler() {};
 
-  virtual std::string generate_response(const Request& request) = 0;
   
 private:
   

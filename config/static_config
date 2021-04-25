@@ -4,11 +4,11 @@ http {
         listen 80;
 
         location /static/ FileHandler {
-            root /files;
+            root /bar;
         }
 
         location /static2/ FileHandler {
-            root /www2;
+            root /oof;
         }
 
         location /echo/ EchoHandler {

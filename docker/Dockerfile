@@ -20,7 +20,8 @@ FROM ubuntu:focal as deploy
 COPY --from=builder /usr/src/project/build/bin/server .
 # Copy configuration file output to "." (Was required from the instructions)
 COPY --from=builder /usr/src/project/config/static_config .
-
+#Copy static data files
+COPY --from=builder /usr/src/project/files .
 # TODO(ahmadhz): Expose some port(s)
 # Note: Add more ports if it is required
 EXPOSE 80

@@ -11,8 +11,9 @@
 using boost::asio::ip::tcp;
 
 
-session::session(boost::asio::io_service& io_service)
+session:: session(boost::asio::io_service& io_service, Dispatcher* dispatcher)
   : socket_(io_service) {
+    dispatcher_ = dispatcher;
 }
 
 tcp::socket& session::socket() {
@@ -46,13 +47,15 @@ void session::append_data() {
 }
 
 void session::build_response() {
+  BOOST_LOG_TRIVIAL(trace) << "In build_response.\n";
   std::string response;
   Request request = RequestHandler::parse_request(data_);
+  BOOST_LOG_TRIVIAL(trace) << "File Path: " << request.path << "\n";
   
   switch (request.type) {
   case RequestType::File: {
-    FileHandler fh;
-    response = fh.generate_response(request);
+    auto fh = dispatcher_ -> get_request_handler(request);
+    response = fh->generate_response(request);
     break;
   }
   case RequestType::Echo: {
@@ -68,7 +71,7 @@ void session::build_response() {
 
   fill_data_with(response);
 
-  //BOOST_LOG_TRIVIAL(trace) << "Returning following response:\n" << response << std::endl;
+  BOOST_LOG_TRIVIAL(trace) << "Returning following response:\n" << response << std::endl;
 }
 
 void session::fill_data_with(const std::string& msg) {
