@@ -7,7 +7,7 @@ class EchoHandler : public RequestHandler {
 public:
   EchoHandler();
   
-  std::string generate_response(const Request& request) override;
+  std::vector<char> generate_response(const Request& request) override;
   
 private:
   

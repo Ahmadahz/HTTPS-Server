@@ -31,6 +31,7 @@ private:
 
   Dispatcher* dispatcher_;
 
-  enum { max_length = 1024 };
+  enum { max_length = 1024000 };
   char data_[max_length];
+  size_t data_len_;
 };

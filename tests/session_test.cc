@@ -30,7 +30,7 @@ protected:
 //   std::string received = test_session.get_data();
 //   EXPECT_TRUE(received.find(expected2) != std::string::npos);
 // }
-
+/*
 TEST_F(SessionTest, DeleteCloseOnWriteTest) {
   session test_session = session(io_service0, nullptr);
   test_session.start();
@@ -46,7 +46,7 @@ TEST_F(SessionTest, DeleteCloseOnWriteTest) {
   char expected2[1] = "";
   EXPECT_STREQ(test_session.get_data(), expected2);
 }
-
+*/
 TEST_F(SessionTest, HandleReadError) {
   session *test_session = new session(io_service0, nullptr);
   test_session->start();

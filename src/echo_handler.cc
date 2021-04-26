@@ -4,7 +4,7 @@ EchoHandler::EchoHandler() {
   
 }
 
-std::string EchoHandler::generate_response(const Request& request) {
+std::vector<char> EchoHandler::generate_response(const Request& request) {
   // Echo with the usual response.
   
   std::string response;
@@ -15,6 +15,6 @@ std::string EchoHandler::generate_response(const Request& request) {
   response += "Content-Type: text/plain\r\n";
   response += "\r\n";
   response += request.content;
-
-  return response;
+  std::vector<char> re(response.begin(), response.end());
+  return re;
 }

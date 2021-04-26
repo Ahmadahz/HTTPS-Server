@@ -2,6 +2,7 @@
 #define _HANDLER_H_
 
 #include <string>
+#include <vector>
 
 enum class RequestType { File, Echo, Unknown };
 enum class ExtType { HTML, JPG, ZIP, TXT };
@@ -31,7 +32,7 @@ public:
   std::string get_path(const char* request);
   std::string get_location(const char* request);
   
-  virtual std::string generate_response(const Request& request) = 0;
+  virtual std::vector<char> generate_response(const Request& request) = 0;
 protected:
   RequestHandler() {};
 
