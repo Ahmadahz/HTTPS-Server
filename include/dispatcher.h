@@ -22,6 +22,7 @@ private:
     std::map<std::string, RequestHandler*> handlers_; 
     size_t init_handlers(const NginxConfig& config);
     bool find_path(const NginxConfig& config, std::string path, std::string handler_type);
+    size_t reg_num;
 };
 
 #endif

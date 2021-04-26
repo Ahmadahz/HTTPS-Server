@@ -16,7 +16,7 @@ FileHandler::FileHandler(const NginxConfig &config, const std::string &prefix) {
       }
     }
 	
-	std::cerr << "root is: " << root << std::endl;
+	BOOST_LOG_TRIVIAL(trace) << "root is: " << root << std::endl;
 }
 
 std::vector<char> FileHandler::generate_response(const Request& request) {
@@ -29,9 +29,9 @@ std::vector<char> FileHandler::generate_response(const Request& request) {
 
   // Check the existence of the file 
   std::ifstream ifile;
-  std::cerr << "filehandler servicing: " << request.path << std::endl;
+  BOOST_LOG_TRIVIAL(trace) <<"filehandler servicing: " << request.path;
   std::string path = root + "/" + request.file;
-  std::cerr << "possible: " << path << std::endl;
+  BOOST_LOG_TRIVIAL(trace) << "pulling file from: " << path;
   ifile.open(path);
   if (ifile) {
 	ifile.close();
