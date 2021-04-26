@@ -10,6 +10,8 @@ using boost::asio::ip::tcp;
 #include "dispatcher.h"
 #include "config_parser.h"
 
+class Logger;
+
 class server {
 public:
   server(boost::asio::io_service& io_service, short port, const NginxConfig &config);
@@ -31,4 +33,5 @@ private:
   Dispatcher* dispatcher_;
   boost::asio::io_service& io_service_;
   tcp::acceptor acceptor_;
+  Logger* logger_;
 };

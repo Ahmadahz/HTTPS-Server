@@ -7,11 +7,13 @@
 using boost::asio::ip::tcp;
 
 #include "server.h"
+#include "logger.h"
 
 server::server(boost::asio::io_service& io_service, short port, const NginxConfig &config)
   : io_service_(io_service),
     acceptor_(io_service, tcp::endpoint(tcp::v4(), port)) {
   dispatcher_ = new Dispatcher(config);
+  logger_ = new Logger();
   start_accept();
 }
 
@@ -43,7 +45,7 @@ void server::handle_accept(session* new_session, const boost::system::error_code
     new_session->start();
   }
   else {
-    BOOST_LOG_TRIVIAL(trace) << "in server::handle_accept(). Deleting session.";
+    BOOST_LOG_TRIVIAL(trace) << "In server::handle_accept(). Deleting session.";
     delete new_session;
   }
 

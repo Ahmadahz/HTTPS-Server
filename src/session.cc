@@ -99,7 +99,7 @@ void session::handle_read(const boost::system::error_code& error,
     }
   }
   else {
-    BOOST_LOG_TRIVIAL(trace) << "Deleting in handle_read.";
+    BOOST_LOG_TRIVIAL(trace) << "Deleting in session::handle_read.";
     delete this;
   }
 }
@@ -112,11 +112,15 @@ void session::handle_write(const boost::system::error_code& error)
     //          If so, rename this function to something appropriate.
     
     memset(data_, '\0', sizeof(data_));
-    BOOST_LOG_TRIVIAL(trace) << "Closing socket.";
+    
+    BOOST_LOG_TRIVIAL(trace)
+      << "Closing socket of IP: "
+      << socket_.remote_endpoint().address().to_string();
+    
     socket_.close();
   }
   else {
-    BOOST_LOG_TRIVIAL(trace) << "Deleting in handle_write.";
+    BOOST_LOG_TRIVIAL(trace) << "Deleting in session::handle_write.";
     delete this;
   }
 }
