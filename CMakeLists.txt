@@ -58,12 +58,15 @@ add_executable(file_handler_test tests/file_handler_test.cc)
 target_link_libraries(file_handler_test request_handler session_lib Boost::system Boost::thread Boost::log_setup Boost::log gtest_main)
 add_executable(config_parser_test tests/config_parser_test.cc)
 target_link_libraries(config_parser_test config_parser gtest_main)
+add_executable(dispatcher_test tests/dispatcher_test.cc)
+target_link_libraries(dispatcher_test dispatcher Boost::system Boost::thread Boost::log_setup Boost::log gtest_main)
 
 # RESOLVED: Update with test binary
 gtest_discover_tests(config_parser_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 gtest_discover_tests(server_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 gtest_discover_tests(session_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 gtest_discover_tests(file_handler_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+gtest_discover_tests(dispatcher_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 add_test(NAME integration_test COMMAND ${BASH_PROGRAM} ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration.sh)
 
 # RESOLVED: Update with target/test targets

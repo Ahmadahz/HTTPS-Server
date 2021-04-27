@@ -14,8 +14,8 @@ Constructor - Constructs a RequestHandler Set. After the constructor has
 been called, all members should be immutable
 */
 Dispatcher::Dispatcher(const NginxConfig& config) {
-   reg_num = init_handlers(config);
-   BOOST_LOG_TRIVIAL(trace) << "Number of Handlers Registered: " << reg_num;
+   regnum = init_handlers(config);
+   BOOST_LOG_TRIVIAL(trace) << "Number of Handlers Registered: " << regnum;
 }
 
 /*  
@@ -25,9 +25,9 @@ Dispatcher::Dispatcher(const NginxConfig& config) {
  The prefix should not have any trailing slashes, however "/" is a valid path
  e.g. /bar/ would be set as /bar  
 */
-RequestHandler* Dispatcher::get_request_handler(const Request& request) const {
+RequestHandler* Dispatcher::get_request_handler(const std::string& uri) const {
     
-    std::string path = request.path;
+    std::string path = uri;
     BOOST_LOG_TRIVIAL(trace) << "path before popping: " << path;
     //remove slashes at end of path
     while(path.length() > 1 && path.back() == '/') {
@@ -59,7 +59,7 @@ RequestHandler* Dispatcher::get_request_handler(const Request& request) const {
  Returns the number of RequestHandlers that were initialized
 
 */
-size_t Dispatcher::init_handlers(const NginxConfig& config) {
+int Dispatcher::init_handlers(const NginxConfig& config) {
     size_t reg_num = 0;
     for (auto block : config.statements_) {
         if (block -> tokens_[0] == "http") {

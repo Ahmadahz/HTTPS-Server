@@ -54,7 +54,7 @@ void session::build_response() {
   
   switch (request.type) {
   case RequestType::File: {
-    auto fh = dispatcher_ -> get_request_handler(request);
+    auto fh = dispatcher_ -> get_request_handler(request.path);
     if (fh) {
       BOOST_LOG_TRIVIAL(trace) << "Request handler found for: " << request.path;
       response = fh->generate_response(request);
