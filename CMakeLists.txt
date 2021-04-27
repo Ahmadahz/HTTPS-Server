@@ -71,4 +71,4 @@ add_test(NAME integration_test COMMAND ${BASH_PROGRAM} ${CMAKE_CURRENT_SOURCE_DI
 
 # RESOLVED: Update with target/test targets
 include(cmake/CodeCoverageReportConfig.cmake)
-generate_coverage_report(TARGETS config_parser server_lib session_lib request_handler TESTS server_test session_test file_handler_test config_parser_test)
+generate_coverage_report(TARGETS config_parser server_lib session_lib request_handler TESTS server_test session_test file_handler_test config_parser_test dispatcher_test)
