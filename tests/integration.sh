@@ -28,7 +28,7 @@ fi
 #Test should not return without \r\n\r\n at the end
 #Wait for 1s timeout then check
 response=$(printf '%s\r\n%s\r\n%s\r\n'  \
-    "GET /echo HTTP/1.1"                    \
+    "GET /echo HTTP/1.1"                \
     "Host: www.test.com"                \
     "Connection: close"                 \
     | nc 35.197.104.232 80) &
@@ -42,6 +42,13 @@ else
     kill -9 $pid_server
     exit 1;
 fi
+
+#Check if jpg file response isn't corrupted
+(printf '%s\r\n%s\r\n%s\r\n\r\n'            \
+    "GET /static/new.jpg HTTP/1.1"          \
+    "Host: www.test.com"                    \
+    "Connection: close"                     \
+    | nc 127.0.0.1 8080) 
 
 kill -9 $pid_server
 exit 0
