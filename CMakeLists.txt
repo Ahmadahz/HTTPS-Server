@@ -50,16 +50,16 @@ target_link_libraries(server config_parser)
 target_link_libraries(config_parser_main config_parser)
 
 # RESOLVED: Update test executable name, srcs, and deps
+add_executable(file_handler_test tests/file_handler_test.cc)
+target_link_libraries(file_handler_test request_handler session_lib Boost::system Boost::thread Boost::log_setup Boost::log gtest_main)
+add_executable(dispatcher_test tests/dispatcher_test.cc)
+target_link_libraries(dispatcher_test dispatcher session_lib Boost::system Boost::thread Boost::log_setup Boost::log gtest_main)
+add_executable(config_parser_test tests/config_parser_test.cc)
+target_link_libraries(config_parser_test config_parser gtest_main)
 add_executable(server_test tests/server_test.cc)
 target_link_libraries(server_test server_lib session_lib request_handler dispatcher logger Boost::system Boost::thread Boost::log_setup Boost::log gtest_main gmock_main)
 add_executable(session_test tests/session_test.cc)
 target_link_libraries(session_test session_lib request_handler dispatcher logger Boost::system Boost::thread Boost::log_setup Boost::log gtest_main)
-add_executable(file_handler_test tests/file_handler_test.cc)
-target_link_libraries(file_handler_test request_handler session_lib Boost::system Boost::thread Boost::log_setup Boost::log gtest_main)
-add_executable(config_parser_test tests/config_parser_test.cc)
-target_link_libraries(config_parser_test config_parser gtest_main)
-add_executable(dispatcher_test tests/dispatcher_test.cc)
-target_link_libraries(dispatcher_test dispatcher Boost::system Boost::thread Boost::log_setup Boost::log gtest_main)
 
 # RESOLVED: Update with test binary
 gtest_discover_tests(config_parser_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
