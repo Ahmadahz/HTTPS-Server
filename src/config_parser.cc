@@ -107,20 +107,20 @@ NginxConfigParser::TokenType NginxConfigParser::ParseToken(std::istream* input,
           case '\r':
             continue;
           default:
-	    if (c == '\\') {
-	      const char ch = input->get();
-	      if (!input->good() || input->fail()) {
+        if (c == '\\') {
+          const char ch = input->get();
+          if (!input->good() || input->fail()) {
           break;
-	      }
-	      if (ch == ' ' || ch == '\t' || ch == ';' ||
-		  ch == '{' || ch == '}' || ch == '#') {
-		*value += ch;
-	      } else {
-		*value += c;
-		input->unget();
-	      }
-	      continue; 
-	    }
+          }
+          if (ch == ' ' || ch == '\t' || ch == ';' ||
+              ch == '{' || ch == '}' || ch == '#') {
+            *value += ch;
+          } else {
+            *value += c;
+            input->unget();
+          }
+          continue; 
+        }
             *value += c;
             state = TOKEN_STATE_TOKEN_TYPE_NORMAL;
             continue;
@@ -346,52 +346,46 @@ bool NginxConfigParser::GetPortNumber(const NginxConfig& out_config, short& port
     // where `http' is the token (hence size being 1).
     // The token size check is to ensure that the config file is properly formed
     // in a way that the config parser doesn't currently check for.
-    if (statements[i]->tokens_.size() == 1 &&
-	statements[i]->tokens_[0] == "http") {
-      std::string port_statement = statements[i]->ToString(0);
-      size_t port_pos = port_statement.find("listen");
+    std::string port_statement = statements[i]->ToString(0);
+    size_t port_pos = port_statement.find("listen");
 
-      if (port_pos != std::string::npos) {
-	port_pos += 6; // Go to position after the end of "listen"
+    if (port_pos != std::string::npos) {
+      port_pos += 6; // Go to position after the end of "listen"
 
-	// Ignore whitespace after "listen" is found in search of start and end
-	// positions of the port number.
-	size_t port_start_pos = port_statement.find_first_not_of(" \t\n\r",
-								 port_pos);
-	size_t port_end_pos = port_statement.find_first_of(" \t;",
-							  port_start_pos);
+      // Ignore whitespace after "listen" is found in search of start and end
+      // positions of the port number.
+      size_t port_start_pos = port_statement.find_first_not_of(" \t\n\r", port_pos);
+      size_t port_end_pos = port_statement.find_first_of(" \t;",port_start_pos);
 
-	// No port number found between `listen' and `;'.
-	if (port_end_pos == port_start_pos) {
-	  std::cerr << "No port number provided." << std::endl;
-	  return false;
-	}
-	
-	std::string port = port_statement.substr(port_start_pos,
-						 port_end_pos - port_start_pos);
+      // No port number found between `listen' and `;'.
+      if (port_end_pos == port_start_pos) {
+        std::cerr << "No port number provided." << std::endl;
+        return false;
+      }
+
+      std::string port = port_statement.substr(port_start_pos,
+          port_end_pos - port_start_pos);
         
-	if (port.find_first_not_of("0123456789") != std::string::npos) {
-	  std::cerr << "Port number must be a postive integer. Port given: " + \
-	    port << std::endl;
-	  return false;
-	}
+      if (port.find_first_not_of("0123456789") != std::string::npos) {
+        std::cerr << "Port number must be a postive integer. Port given: " + \
+            port << std::endl;
+            return false;
+          }
 
-	int int_port = stoi(port);
-	if (int_port < 0 || int_port > 65535) {
-	  std::cerr << "Port numbers must be between 0 and 65535." << std::endl;
-	  return false;
-	}
-	
-	port_number = int_port;
+     int int_port = stoi(port);
+      if (int_port < 0 || int_port > 65535) {
+        std::cerr << "Port numbers must be between 0 and 65535." << std::endl;
+        return false;
+      }
 
-        return true;
-      }
-      else {
-	std::cerr << "\"listen\" token not found." << std::endl;
-	return false;
-      }
+      port_number = int_port;
+
+      return true;
+    }
+    else {
+      std::cerr << "\"listen\" token not found." << std::endl;
+      return false;
     }
   }
-
   return false;
 }

@@ -15,7 +15,7 @@ been called, all members should be immutable
 */
 Dispatcher::Dispatcher(const NginxConfig& config) {
    regnum = init_handlers(config);
-   BOOST_LOG_TRIVIAL(trace) << "Number of Handlers Registered: " << regnum;
+   BOOST_LOG_TRIVIAL(trace) << "In Dispatcher::Dispatcher: Number of Handlers Registered: " << regnum;
 }
 
 /*  
@@ -28,7 +28,7 @@ Dispatcher::Dispatcher(const NginxConfig& config) {
 RequestHandler* Dispatcher::get_request_handler(const std::string& uri) const {
     
     std::string path = uri;
-    BOOST_LOG_TRIVIAL(trace) << "path before popping: " << path;
+    BOOST_LOG_TRIVIAL(trace) << "In Dispatcher::get_request_hander: path before popping: " << path;
     //remove slashes at end of path
     while(path.length() > 1 && path.back() == '/') {
         path.pop_back();
@@ -36,7 +36,7 @@ RequestHandler* Dispatcher::get_request_handler(const std::string& uri) const {
 
     RequestHandler* handler = nullptr;
     std::string prefix;
-    BOOST_LOG_TRIVIAL(trace) << "dispatcher looking for: " << path; 
+    BOOST_LOG_TRIVIAL(trace) << "In Dispatcher::get_request_hander: dispatcher looking for: " << path; 
     //match longest prefix and corresponding handler
     for(auto it = handlers_.begin(); it != handlers_.end(); it++)
     {
@@ -47,7 +47,7 @@ RequestHandler* Dispatcher::get_request_handler(const std::string& uri) const {
             }
         }
     }
-    BOOST_LOG_TRIVIAL(trace) << "handler with prefix found: " << prefix;
+    BOOST_LOG_TRIVIAL(trace) << "In Dispatcher::get_request_hander: handler with prefix found: " << prefix;
     return handler;
 }
 
@@ -61,36 +61,19 @@ RequestHandler* Dispatcher::get_request_handler(const std::string& uri) const {
 */
 int Dispatcher::init_handlers(const NginxConfig& config) {
     size_t reg_num = 0;
-    for (auto block : config.statements_) {
-        if (block -> tokens_[0] == "http") {
-            if (block -> tokens_.size() != 1) {
-                BOOST_LOG_TRIVIAL(trace) << "http format error";
+        for (auto stmt : config.statements_) {
+            if (stmt -> tokens_.size() < 3 && stmt -> tokens_[0] != "listen") {
+                BOOST_LOG_TRIVIAL(trace) << "In Dispatcher::get_request_hander: child statement format error. Token[0] is: " << stmt -> tokens_[0];
                 continue; //Formatting Error
             }
-            for (auto stmt : block -> child_block_ -> statements_) {
-                if (stmt -> tokens_[0] == "server") {
-                    if (stmt -> tokens_.size() != 1) {
-                        BOOST_LOG_TRIVIAL(trace) << "server format error";
-                        continue; //Formatting Error
-                    }
-                    for (auto child_stmt : stmt -> child_block_ -> statements_) {
-                        if (child_stmt -> tokens_.size() < 3) {
-                            BOOST_LOG_TRIVIAL(trace) << "child statement format error";
-                            continue; //Formatting Error
-                        }
-                        if (child_stmt -> tokens_[0] != "location") {
-                            BOOST_LOG_TRIVIAL(trace) << "location format error";
-                            continue; //Formatting Error
-                        }
-                        if (find_path(*(child_stmt-> child_block_), child_stmt -> tokens_[1], child_stmt -> tokens_[2])) {
-                            reg_num++;
-                        }
-                    }
-                }
+            if (stmt -> tokens_[0] != "location") {
+                BOOST_LOG_TRIVIAL(trace) << "In Dispatcher::get_request_hander: location format error";
+                continue; //Formatting Error
+            }
+            if (find_path(*(stmt-> child_block_), stmt -> tokens_[1], stmt -> tokens_[2])) {
+                reg_num++;
             }
         }
-        break;
-    }
     return reg_num;
 }
 
@@ -104,7 +87,7 @@ bool Dispatcher::find_path(const NginxConfig& config, std::string path, std::str
     }
 
     if (handlers_.find(path) != handlers_.end()) {
-        BOOST_LOG_TRIVIAL(trace) << "Path found but already handled: " << path;
+        BOOST_LOG_TRIVIAL(trace) << "In Dispatcher::find_path: Path found but already handled: " << path;
         return false; // Already added
     }
 
@@ -115,9 +98,9 @@ bool Dispatcher::find_path(const NginxConfig& config, std::string path, std::str
         handlers_[path] = new EchoHandler();
     }
     else {
-        BOOST_LOG_TRIVIAL(trace) << "Handlertype couldn't be found";
+        BOOST_LOG_TRIVIAL(trace) << "In Dispatcher::find_path: Handlertype couldn't be found";
         return false;
     }
-    BOOST_LOG_TRIVIAL(trace) << "Path found: " << path << " handled as: " << handler_type;
+    BOOST_LOG_TRIVIAL(trace) << "In Dispatcher::find_path: Path found: " << path << " handled as: " << handler_type;
     return true;
 }

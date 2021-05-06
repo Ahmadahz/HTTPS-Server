@@ -113,46 +113,37 @@ TEST_F(HttpEchoTest, BasicConfig) {
   EXPECT_EQ(port_number_, 80);
 }
 
-TEST_F(HttpEchoTest, MultilineConfig) {
-  EXPECT_TRUE(parse("../config/multi_config", true));
+// multi_config is old syntax and obsolete nows
+// TEST_F(HttpEchoTest, MultilineConfig) {
+//   EXPECT_TRUE(parse("../config/multi_config", true));
 
-  EXPECT_TRUE(port_number());
-  EXPECT_EQ(port_number_, 8080);
-}
-
-TEST_F(HttpEchoTest, BrokenConfig) {
-  EXPECT_TRUE(parse("http junk {listen 100;}"));
-  EXPECT_FALSE(port_number());
-}
-
-TEST_F(HttpEchoTest, NoBlockConfig) {
-  EXPECT_TRUE(parse("listen 80;"));
-  EXPECT_FALSE(port_number());
-}
+//   EXPECT_TRUE(port_number());
+//   EXPECT_EQ(port_number_, 8080);
+// }
 
 TEST_F(HttpEchoTest, NoPortConfig) {
-  EXPECT_TRUE(parse("http {listen;}"));
+  EXPECT_TRUE(parse("listen;"));
   EXPECT_FALSE(port_number());
 }
 
 TEST_F(HttpEchoTest, NoListenKeyword) {
-  EXPECT_TRUE(parse("http { root; }"));
+  EXPECT_TRUE(parse("root;"));
   EXPECT_FALSE(port_number());
 }
 
 TEST_F(HttpEchoTest, NonDecimalPort) {
-  EXPECT_TRUE(parse("http { listen number; }"));
+  EXPECT_TRUE(parse("listen number;"));
   EXPECT_FALSE(port_number());
   
-  EXPECT_TRUE(parse("http { listen 2020g; }"));
+  EXPECT_TRUE(parse("listen 2020g;"));
   EXPECT_FALSE(port_number());
 }
 
 TEST_F(HttpEchoTest, InvalidPortNumber) {
-  EXPECT_TRUE(parse("http { listen 88888; }"));
+  EXPECT_TRUE(parse("listen 88888;"));
   EXPECT_FALSE(port_number());
 
-  EXPECT_TRUE(parse("http { listen -1; }"));
+  EXPECT_TRUE(parse("listen -1;"));
   EXPECT_FALSE(port_number());
 }
 
@@ -162,10 +153,11 @@ TEST_F(HttpEchoTest, IgnoreComments) {
 }
 
 TEST_F(HttpEchoTest, TrailingQuotes) {
-  EXPECT_FALSE(parse("http { listen 80; } '"));
-  EXPECT_FALSE(parse("http { listen 80; } \" "));
+  EXPECT_FALSE(parse("listen 80; '"));
+  EXPECT_FALSE(parse("listen 80; \" "));
 }
 
+// Need to check what this does 
 TEST_F(HttpEchoTest, EscapedBackslash) {
   EXPECT_TRUE(parse("http \\{ listen 80; \\}"));
 }

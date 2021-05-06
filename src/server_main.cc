@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
         BOOST_LOG_TRIVIAL(trace) << "io_service ran and all work has finished";
       }
       else {
-        BOOST_LOG_TRIVIAL(error) << "Port number error";
+        BOOST_LOG_TRIVIAL(error) << "In main: Port number error";
 				return 1;
       }
     }
