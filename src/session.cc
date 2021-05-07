@@ -53,35 +53,46 @@ void session::build_response() {
   Request request = RequestHandler::parse_request(data_);
   BOOST_LOG_TRIVIAL(trace) << "In session::build_response: File Path: " << request.path << "\n";
   
-  switch (request.type) {
-  case RequestType::File: {
-    auto fh = dispatcher_ -> get_request_handler(request.path);
-    if (fh) {
-      BOOST_LOG_TRIVIAL(trace) << "In session::build_response: Request handler found for: " << request.path;
-      response = fh->generate_response(request);
-    }
-    else {
-      BOOST_LOG_TRIVIAL(info) << "In session::build_response: No request handler found for: " << request.path;
-    }
-    break;
+  auto handler = dispatcher_ -> get_request_handler(request.path);
+  if (handler) {
+    BOOST_LOG_TRIVIAL(trace) << "In session::build_response: Request handler found for: " << request.path;
+    response = handler->generate_response(request);
   }
-  case RequestType::Echo: {
-    EchoHandler eh;
-    response = eh.generate_response(request);
-    break;
+  else {
+    BOOST_LOG_TRIVIAL(info) << "In session::build_response: No request handler found for: " << request.path;
   }
-  case RequestType::_404: {
-    _404Handler _404h;
-    response = _404h.generate_response(request);
-    break;
-  }
-  default:
-    // Request type was invalid. Generate an error response.
-    BOOST_LOG_TRIVIAL(warning) << "In session::build_response: No request handler found for: " << request.path << "\nShould have defaulted to 404 handler and not here";
-    std::string error_response = "HTTP/1.1 404 Not Found\nContent-Length: 22\nContent-Type: text/html\n\n<h1>404 Not Found!!!</h1>";
-    std::copy(error_response.begin(), error_response.end(), std::back_inserter(response));
-    break;
-  }
+  response = handler->generate_response(request);
+
+  // I THINK WE DONT NEED THIS (Khanh)
+  // switch (request.type) {
+  // case RequestType::File: {
+  //   auto fh = dispatcher_ -> get_request_handler(request.path);
+  //   if (fh) {
+  //     BOOST_LOG_TRIVIAL(trace) << "In session::build_response: Request handler found for: " << request.path;
+  //     response = fh->generate_response(request);
+  //   }
+  //   else {
+  //     BOOST_LOG_TRIVIAL(info) << "In session::build_response: No request handler found for: " << request.path;
+  //   }
+  //   break;
+  // }
+  // case RequestType::Echo: {
+  //   EchoHandler eh;
+  //   response = eh.generate_response(request);
+  //   break;
+  // }
+  // case RequestType::_404: {
+  //   _404Handler _404h;
+  //   response = _404h.generate_response(request);
+  //   break;
+  // }
+  // default:
+  //   // Request type was invalid. Generate an error response.
+  //   BOOST_LOG_TRIVIAL(warning) << "In session::build_response: No request handler found for: " << request.path << "\nShould have defaulted to 404 handler and not here";
+  //   std::string error_response = "HTTP/1.1 404 Not Found\nContent-Length: 22\nContent-Type: text/html\n\n<h1>404 Not Found!!!</h1>";
+  //   std::copy(error_response.begin(), error_response.end(), std::back_inserter(response));
+  //   break;
+  // }
 
   std::copy(response.begin(), response.end(), data_);
   data_len_ = response.size();

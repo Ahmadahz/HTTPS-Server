@@ -79,6 +79,10 @@ int Dispatcher::init_handlers(const NginxConfig& config) {
             reg_num++;
         }
     }
+    BOOST_LOG_TRIVIAL(trace) << "Handlers: ";
+    for (auto handlers: handlers_) {
+        BOOST_LOG_TRIVIAL(trace) << handlers.first << ": " << handlers.second;
+    }
     return reg_num;
 }
 
