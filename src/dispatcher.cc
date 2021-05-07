@@ -7,6 +7,7 @@
 #include "handler.h"
 #include "file_handler.h"
 #include "echo_handler.h"
+#include "404_handler.h"
 
 
 /*
@@ -56,24 +57,28 @@ RequestHandler* Dispatcher::get_request_handler(const std::string& uri) const {
  init_handlers() - Given a config file, parses the file for a server block
  then looks for "location" blocks within the server block
 
+ Also creates the 404 handler mapped to / 
  Returns the number of RequestHandlers that were initialized
 
 */
 int Dispatcher::init_handlers(const NginxConfig& config) {
     size_t reg_num = 0;
-        for (auto stmt : config.statements_) {
-            if (stmt -> tokens_.size() < 3 && stmt -> tokens_[0] != "listen") {
-                BOOST_LOG_TRIVIAL(trace) << "In Dispatcher::get_request_hander: child statement format error. Token[0] is: " << stmt -> tokens_[0];
-                continue; //Formatting Error
-            }
-            if (stmt -> tokens_[0] != "location") {
-                BOOST_LOG_TRIVIAL(trace) << "In Dispatcher::get_request_hander: location format error";
-                continue; //Formatting Error
-            }
-            if (find_path(*(stmt-> child_block_), stmt -> tokens_[1], stmt -> tokens_[2])) {
-                reg_num++;
-            }
+    std::string path = "/";
+    handlers_[path] = new _404Handler();
+    reg_num++;
+    for (auto stmt : config.statements_) {
+        if (stmt -> tokens_.size() < 3 && stmt -> tokens_[0] != "listen") {
+            BOOST_LOG_TRIVIAL(trace) << "In Dispatcher::get_request_hander: child statement format error. Token[0] is: " << stmt -> tokens_[0];
+            continue; //Formatting Error
         }
+        if (stmt -> tokens_[0] != "location") {
+            BOOST_LOG_TRIVIAL(trace) << "In Dispatcher::get_request_hander: location format error";
+            continue; //Formatting Error
+        }
+        if (find_path(*(stmt-> child_block_), stmt -> tokens_[1], stmt -> tokens_[2])) {
+            reg_num++;
+        }
+    }
     return reg_num;
 }
 
@@ -96,6 +101,9 @@ bool Dispatcher::find_path(const NginxConfig& config, std::string path, std::str
     }
     else if (handler_type == "EchoHandler") {
         handlers_[path] = new EchoHandler();
+    }
+    else if (handler_type == "404Handler") {
+        handlers_[path] = new _404Handler();
     }
     else {
         BOOST_LOG_TRIVIAL(trace) << "In Dispatcher::find_path: Handlertype couldn't be found";

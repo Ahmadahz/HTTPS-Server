@@ -7,6 +7,7 @@
 #include "session.h"
 #include "echo_handler.h"
 #include "file_handler.h"
+#include "404_handler.h"
 
 using boost::asio::ip::tcp;
 
@@ -47,20 +48,20 @@ void session::append_data() {
 }
 
 void session::build_response() {
-  BOOST_LOG_TRIVIAL(trace) << "In build_response.\n";
+  BOOST_LOG_TRIVIAL(trace) << "In session::build_response: In build_response.\n";
   std::vector<char> response;
   Request request = RequestHandler::parse_request(data_);
-  BOOST_LOG_TRIVIAL(trace) << "File Path: " << request.path << "\n";
+  BOOST_LOG_TRIVIAL(trace) << "In session::build_response: File Path: " << request.path << "\n";
   
   switch (request.type) {
   case RequestType::File: {
     auto fh = dispatcher_ -> get_request_handler(request.path);
     if (fh) {
-      BOOST_LOG_TRIVIAL(trace) << "Request handler found for: " << request.path;
+      BOOST_LOG_TRIVIAL(trace) << "In session::build_response: Request handler found for: " << request.path;
       response = fh->generate_response(request);
     }
     else {
-      BOOST_LOG_TRIVIAL(info) << "No request handler found for: " << request.path;
+      BOOST_LOG_TRIVIAL(info) << "In session::build_response: No request handler found for: " << request.path;
     }
     break;
   }
@@ -69,9 +70,15 @@ void session::build_response() {
     response = eh.generate_response(request);
     break;
   }
+  case RequestType::_404: {
+    _404Handler _404h;
+    response = _404h.generate_response(request);
+    break;
+  }
   default:
     // Request type was invalid. Generate an error response.
-    std::string error_response = "HTTP/1.1 404 Not Found\nContent-Length: 22\nContent-Type: text/html\n\n<h1>404 Not Found</h1>";
+    BOOST_LOG_TRIVIAL(warning) << "In session::build_response: No request handler found for: " << request.path << "\nShould have defaulted to 404 handler and not here";
+    std::string error_response = "HTTP/1.1 404 Not Found\nContent-Length: 22\nContent-Type: text/html\n\n<h1>404 Not Found!!!</h1>";
     std::copy(error_response.begin(), error_response.end(), std::back_inserter(response));
     break;
   }

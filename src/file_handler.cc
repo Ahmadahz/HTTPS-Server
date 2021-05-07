@@ -84,6 +84,7 @@ std::vector<char> FileHandler::generate_response(const Request& request) {
 	
 	} else {
 	// 404 error
+    BOOST_LOG_TRIVIAL(trace) << "404 from filehandler";
 		response = "HTTP/1.1 404 Not Found\nContent-Length: 22\nContent-Type: text/html\n\n<h1>404 Not Found</h1>";
 		std::copy(response.begin(), response.end(), std::back_inserter(res));
 	}

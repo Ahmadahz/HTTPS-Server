@@ -17,7 +17,7 @@ Request RequestHandler::parse_request(const char* request) {
     parsed_request.type = RequestType::Echo;
   }
   else{
-	parsed_request.type = RequestType::Unknown;
+	parsed_request.type = RequestType::_404;
   }
   
   //Find the path

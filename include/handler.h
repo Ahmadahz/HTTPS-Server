@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-enum class RequestType { File, Echo, Unknown };
+enum class RequestType { File, Echo, _404, Unknown };
 enum class ExtType { HTML, JPG, ZIP, TXT };
 
 struct Request {

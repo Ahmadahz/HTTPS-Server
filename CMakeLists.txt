@@ -38,8 +38,8 @@ include_directories(include)
 add_library(session_lib src/session.cc)
 add_library(server_lib src/server.cc)
 add_library(config_parser src/config_parser.cc)
-add_library(request_handler src/handler.cc src/echo_handler.cc src/file_handler.cc)
-add_library(dispatcher src/dispatcher.cc src/echo_handler.cc src/file_handler.cc src/config_parser.cc)
+add_library(request_handler src/handler.cc src/echo_handler.cc src/file_handler.cc src/404_handler.cc)
+add_library(dispatcher src/dispatcher.cc src/echo_handler.cc src/file_handler.cc src/config_parser.cc src/404_handler.cc)
 add_library(logger src/logger.cc)
 
 # RESOLVED: Update executable name, srcs, and deps
