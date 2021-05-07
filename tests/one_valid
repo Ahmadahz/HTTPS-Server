@@ -1,19 +1,13 @@
-http { 
-    server {
+listen 80;
 
-        listen 80;
+location /static/one FileHandler {
+    root /bar;
+}
 
-        location /static/one FileHandler {
-            root /bar;
-        }
+location /static2/ random {
+    root /oof;
+}
 
-        location /static2/ random {
-            root /oof;
-        }
-
-        location /echo/ whack {
-            empty /stmt;
-        }
-       
-    }
+location /echo/ whack {
+    empty /stmt;
 }

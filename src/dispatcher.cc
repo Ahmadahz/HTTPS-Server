@@ -91,10 +91,10 @@ bool Dispatcher::find_path(const NginxConfig& config, std::string path, std::str
         return false; // Already added
     }
 
-    if (handler_type == RequestFile) {
+    if (handler_type == "FileHandler") {
         handlers_[path] = new FileHandler(config, path);
     }
-    else if (handler_type == RequestEcho) {
+    else if (handler_type == "EchoHandler") {
         handlers_[path] = new EchoHandler();
     }
     else {

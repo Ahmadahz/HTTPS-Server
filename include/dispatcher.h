@@ -6,10 +6,6 @@
 
 #include "config_parser.h"
 #include "handler.h"
-
-static const std::string RequestFile = "FileHandler";
-static const std::string RequestEcho = "EchoHandler";
-
 /*
     Processes Config File to Determine which Handler should be used and deploys that handler
 */
