@@ -161,3 +161,15 @@ TEST_F(HttpEchoTest, TrailingQuotes) {
 TEST_F(HttpEchoTest, EscapedBackslash) {
   EXPECT_TRUE(parse("http \\{ listen 80; \\}"));
 }
+
+TEST_F(HttpEchoTest, EchoBlock) {
+  EXPECT_TRUE(parse("location /echo/ EchoHandler {empty /stmt;}"));
+}
+
+TEST_F(HttpEchoTest, StaticBlock) {
+  EXPECT_TRUE(parse("location /static/ FileHandler {root /bar;}"));
+}
+
+TEST_F(HttpEchoTest, QuotedPath) {
+  EXPECT_TRUE(parse("location \"/static/ FileHandler\" {root /bar;}"));
+}
