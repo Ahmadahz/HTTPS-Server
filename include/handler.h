@@ -4,6 +4,13 @@
 #include <string>
 #include <vector>
 
+#include <boost/beast/http.hpp>
+#include <boost/beast/http/message.hpp>
+
+namespace http = boost::beast::http;
+
+class NginxConfig;
+
 enum class RequestType { File, Echo, _404, Unknown };
 enum class ExtType { HTML, JPG, ZIP, TXT };
 
@@ -29,13 +36,16 @@ public:
    * Returns a Request object to be used by a file handler.
   */
   static Request parse_request(const char* request);
+  
   std::string get_path(const char* request);
   std::string get_location(const char* request);
   
   virtual std::vector<char> generate_response(const Request& request) = 0;
+  
+  virtual http::response<http::string_body> handle_request(const http::request<http::string_body>& request) = 0;
+  
 protected:
   RequestHandler() {};
-
   
 private:
   

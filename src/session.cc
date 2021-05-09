@@ -3,6 +3,7 @@
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/beast/http.hpp>
 
 #include "session.h"
 #include "echo_handler.h"
@@ -10,7 +11,7 @@
 #include "404_handler.h"
 
 using boost::asio::ip::tcp;
-
+namespace http = boost::beast::http;
 
 session:: session(boost::asio::io_service& io_service, Dispatcher* dispatcher)
   : socket_(io_service) {
@@ -30,7 +31,7 @@ void session::start() {
         boost::asio::placeholders::bytes_transferred));
 }
 
-bool session::end_of_request() {
+bool session::end_of_request() const {
   std::string request = data_;
   return request.find("\r\n\r\n") != std::string::npos ||
          request.find("\n\n") != std::string::npos;
@@ -49,55 +50,40 @@ void session::append_data() {
 
 void session::build_response() {
   BOOST_LOG_TRIVIAL(trace) << "In session::build_response: In build_response.\n";
+  
   std::vector<char> response;
   Request request = RequestHandler::parse_request(data_);
+
+  http::response<http::string_body> resp;
+  
+  boost::system::error_code ec;
+  http::request_parser<http::string_body> parser;
+  parser.eager(true);
+  parser.put(boost::asio::buffer(data_, strlen(data_)), ec);
+  http::request<http::string_body> req = parser.get();
+
+  BOOST_LOG_TRIVIAL(trace) << "Request target: " << req.target().data();
+  
   BOOST_LOG_TRIVIAL(trace) << "In session::build_response: File Path: " << request.path << "\n";
   
-  auto handler = dispatcher_ -> get_request_handler(request.path);
+  RequestHandler* handler = dispatcher_->get_request_handler(request.path);
   if (handler) {
     BOOST_LOG_TRIVIAL(trace) << "In session::build_response: Request handler found for: " << request.path;
-    response = handler->generate_response(request);
+    //response = handler->generate_response(request);
+    buffer_ = handler->handle_request(req);
+
+    BOOST_LOG_TRIVIAL(trace) << "Body of response: " << buffer_.body();
   }
   else {
     BOOST_LOG_TRIVIAL(info) << "In session::build_response: No request handler found for: " << request.path;
   }
-  response = handler->generate_response(request);
 
-  // I THINK WE DONT NEED THIS (Khanh)
-  // switch (request.type) {
-  // case RequestType::File: {
-  //   auto fh = dispatcher_ -> get_request_handler(request.path);
-  //   if (fh) {
-  //     BOOST_LOG_TRIVIAL(trace) << "In session::build_response: Request handler found for: " << request.path;
-  //     response = fh->generate_response(request);
-  //   }
-  //   else {
-  //     BOOST_LOG_TRIVIAL(info) << "In session::build_response: No request handler found for: " << request.path;
-  //   }
-  //   break;
-  // }
-  // case RequestType::Echo: {
-  //   EchoHandler eh;
-  //   response = eh.generate_response(request);
-  //   break;
-  // }
-  // case RequestType::_404: {
-  //   _404Handler _404h;
-  //   response = _404h.generate_response(request);
-  //   break;
-  // }
-  // default:
-  //   // Request type was invalid. Generate an error response.
-  //   BOOST_LOG_TRIVIAL(warning) << "In session::build_response: No request handler found for: " << request.path << "\nShould have defaulted to 404 handler and not here";
-  //   std::string error_response = "HTTP/1.1 404 Not Found\nContent-Length: 22\nContent-Type: text/html\n\n<h1>404 Not Found!!!</h1>";
-  //   std::copy(error_response.begin(), error_response.end(), std::back_inserter(response));
-  //   break;
-  // }
+  http::async_write(socket_, buffer_,
+      boost::bind(&session::handle_write, this,
+                  boost::asio::placeholders::error));
 
-  std::copy(response.begin(), response.end(), data_);
-  data_len_ = response.size();
-
-  //BOOST_LOG_TRIVIAL(trace) << "Returning following response:\n" << response << std::endl;
+  //std::copy(response.begin(), response.end(), data_);
+  //data_len_ = response.size();
 }
 
 void session::fill_data_with(const std::string& msg) {
@@ -118,10 +104,10 @@ void session::handle_read(const boost::system::error_code& error,
     else {
       build_response();
     
-      boost::asio::async_write(socket_,
-        boost::asio::buffer(data_, data_len_),
-          boost::bind(&session::handle_write, this,
-          boost::asio::placeholders::error));
+      //boost::asio::async_write(socket_,
+      //  boost::asio::buffer(data_, data_len_),
+      //    boost::bind(&session::handle_write, this,
+      //    boost::asio::placeholders::error));
     }
   }
   else {

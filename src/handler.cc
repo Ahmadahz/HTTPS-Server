@@ -3,6 +3,10 @@
 #include <regex>
 #include <boost/log/trivial.hpp>
 
+/*RequestHandler::RequestHandler() {
+  
+}*/
+
 Request RequestHandler::parse_request(const char* request) {
   Request parsed_request;
   std::string req(request);
@@ -53,11 +57,10 @@ Request RequestHandler::parse_request(const char* request) {
       // }
   	//Is this path correct?!?!?! 
   	// file_path = std::regex_replace(file_path, std::regex("static"), "bar");
-  	std::cerr << "file is: "  << std::endl;
-  	std::cerr << "file path: " << file_path << std::endl;
+
   	parsed_request.path = file_path;
   	parsed_request.file = file;
-    BOOST_LOG_TRIVIAL(trace) << "In RequestHandler::parsed_request: " << "file is: "  << file << "file path: " << file_path << std::endl;
+    BOOST_LOG_TRIVIAL(trace) << "In RequestHandler::parsed_request: " << "File is: "  << file << "\nFile path: " << file_path << std::endl;
   }
   
   //Find the extension type

@@ -48,7 +48,7 @@ RequestHandler* Dispatcher::get_request_handler(const std::string& uri) const {
             }
         }
     }
-    BOOST_LOG_TRIVIAL(trace) << "In Dispatcher::get_request_hander: handler with prefix found: " << prefix;
+    BOOST_LOG_TRIVIAL(trace) << "In Dispatcher::get_request_handler: handler with prefix found: " << prefix;
     return handler;
 }
 
@@ -64,15 +64,15 @@ RequestHandler* Dispatcher::get_request_handler(const std::string& uri) const {
 int Dispatcher::init_handlers(const NginxConfig& config) {
     size_t reg_num = 0;
     std::string path = "/";
-    handlers_[path] = new _404Handler();
+    handlers_[path] = new _404Handler(path, config);
     reg_num++;
     for (auto stmt : config.statements_) {
         if (stmt -> tokens_.size() < 3 && stmt -> tokens_[0] != "listen") {
-            BOOST_LOG_TRIVIAL(trace) << "In Dispatcher::get_request_hander: child statement format error. Token[0] is: " << stmt -> tokens_[0];
+            BOOST_LOG_TRIVIAL(trace) << "In Dispatcher::get_request_handler: child statement format error. Token[0] is: " << stmt -> tokens_[0];
             continue; //Formatting Error
         }
         if (stmt -> tokens_[0] != "location") {
-            BOOST_LOG_TRIVIAL(trace) << "In Dispatcher::get_request_hander: location format error";
+            BOOST_LOG_TRIVIAL(trace) << "In Dispatcher::get_request_handler: location format error";
             continue; //Formatting Error
         }
         if (find_path(*(stmt-> child_block_), stmt -> tokens_[1], stmt -> tokens_[2])) {
@@ -101,13 +101,13 @@ bool Dispatcher::find_path(const NginxConfig& config, std::string path, std::str
     }
 
     if (handler_type == "FileHandler") {
-        handlers_[path] = new FileHandler(config, path);
+      handlers_[path] = new FileHandler(path, config);
     }
     else if (handler_type == "EchoHandler") {
-        handlers_[path] = new EchoHandler();
+      handlers_[path] = new EchoHandler(path, config);
     }
     else if (handler_type == "404Handler") {
-        handlers_[path] = new _404Handler();
+      handlers_[path] = new _404Handler(path, config);
     }
     else {
         BOOST_LOG_TRIVIAL(trace) << "In Dispatcher::find_path: Handlertype couldn't be found";

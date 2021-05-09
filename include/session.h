@@ -3,9 +3,11 @@
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/beast/http.hpp>
 #include "dispatcher.h"
 
 using boost::asio::ip::tcp;
+namespace http = boost::beast::http;
 
 class session {
 public:
@@ -25,12 +27,13 @@ public:
   tcp::socket socket_;
 
 private:
-  bool end_of_request();
+  bool end_of_request() const;
   void append_data();
   void build_response();
 
   Dispatcher* dispatcher_;
 
+  http::response<http::string_body> buffer_;
   enum { max_length = 1024000 };
   char data_[max_length];
   size_t data_len_;
