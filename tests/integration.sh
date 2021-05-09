@@ -30,7 +30,7 @@ response=$(printf '%s\r\n%s\r\n%s\r\n\r\n'            \
 			    "GET /echo/hell HTTP/1.1"         \
 			   "Host: www.test.com"                   \
                "Connection: close"                    \
-               | nc 127.0.0.1 80)
+               | nc 35.197.104.232 80)
 
 echo $response > echo_test
 echo -n "Test 1:"
