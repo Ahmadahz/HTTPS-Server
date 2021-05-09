@@ -10,24 +10,24 @@ protected:
   boost::asio::io_service io_service0;
 };
 
-TEST_F(SessionTest, ReadAndDetectEndTest) {
-  session test_session = session(io_service0, nullptr);
-  test_session.start();
+// TEST_F(SessionTest, ReadAndDetectEndTest) {
+//   session test_session = session(io_service0, nullptr);
+//   test_session.start();
 
-  request = "GET Request\n";
-  test_session.fill_data_with(request);
-  test_session.handle_read(success_code, request.size());
+//   request = "GET Request\n";
+//   test_session.fill_data_with(request);
+//   test_session.handle_read(success_code, request.size());
 
-  char expected[13] = "GET Request\n";
-  EXPECT_STREQ(test_session.get_data(), expected);
+//   char expected[13] = "GET Request\n";
+//   EXPECT_STREQ(test_session.get_data(), expected);
 
-  request = "GET Request\nBody\n\n";
-  test_session.fill_data_with(request);
-  test_session.handle_read(success_code, request.size());
+//   request = "GET Request\nBody\n\n";
+//   test_session.fill_data_with(request);
+//   test_session.handle_read(success_code, request.size());
 
-  std::string received = test_session.get_data();
-  EXPECT_TRUE(received.find("HTTP") != std::string::npos);
-}
+//   std::string received = test_session.get_data();
+//   EXPECT_TRUE(received.find("HTTP") != std::string::npos);
+// }
 
 
 TEST_F(SessionTest, DeleteCloseOnWriteTest) {

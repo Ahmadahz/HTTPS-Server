@@ -91,7 +91,6 @@ NginxConfigParser::TokenType NginxConfigParser::ParseToken(std::istream* input,
             state = TOKEN_STATE_TOKEN_TYPE_COMMENT;
             continue;
           case '"':
-            *value = c;
             state = TOKEN_STATE_DOUBLE_QUOTE;
             continue;
           case '\'':
@@ -127,62 +126,63 @@ NginxConfigParser::TokenType NginxConfigParser::ParseToken(std::istream* input,
         }
       case TOKEN_STATE_SINGLE_QUOTE:
         // TODO: Maybe also define a QUOTED_STRING token type.
-	if (c == '\\') {
-	  const char ch = input->get();
-	  if (!input->good() || input->fail()) {
-	    break;
-	  }
-	  if (ch == '\'') {
-	    *value += ch;
-	  } else {
-	    *value += c;
-	    input->unget();
-	  }
-	  continue; 
-	}
-	*value += c;
-	if (c == '\'') {
-	  const char ch = input->get();
-	  if (!input->good() || input->fail()) {
-	    break;
-	  }
-	  if (!(ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r' ||
-		ch == ';' || ch == '{')) {
-	    return TOKEN_TYPE_ERROR;
-	  }
-	  input->unget();
-          return TOKEN_TYPE_NORMAL;
-	}
-        continue;
-      case TOKEN_STATE_DOUBLE_QUOTE:
-	if (c == '\\') {
-	  const char ch = input->get();
-	  if (!input->good() || input->fail()) {
-	    break;
-	  }
-	  if (ch == '\"') {
-	    *value += ch;
-	  } else {
-	    *value += c;
-	    input->unget();
-	  }
-	  continue; 
-	}
-	*value += c;
-	if (c == '"') {
-	  const char ch = input->get();
-	  if (!input->good() || input->fail()) {
-	    break;
-	  }
-	  if (!(ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r' ||
-		ch == ';' || ch == '{')) {
-	    return TOKEN_TYPE_ERROR;
-	  }
-	  input->unget();
+        if (c == '\\') {
+          const char ch = input->get();
+          if (!input->good() || input->fail()) {
+            break;
+          }
+          if (ch == '\'') {
+            *value += ch;
+          } else {
+            *value += c;
+            input->unget();
+          }
+          continue; 
+        }
+        *value += c;
+        if (c == '\'') {
+          const char ch = input->get();
+          if (!input->good() || input->fail()) {
+            break;
+          }
+          if (!(ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r' ||
+            ch == ';' || ch == '{')) {
+            return TOKEN_TYPE_ERROR;
+          }
+          input->unget();
           return TOKEN_TYPE_NORMAL;
         }
         continue;
-      case TOKEN_STATE_TOKEN_TYPE_COMMENT:
+      case TOKEN_STATE_DOUBLE_QUOTE:
+        if (c == '\\') {
+          const char ch = input->get();
+          if (!input->good() || input->fail()) {
+            break;
+          }
+          if (ch == '\"') {
+            *value += ch;
+          } 
+          else {
+            *value += c;
+            input->unget();
+          }
+          continue; 
+        }
+        if (c == '"') {
+          const char ch = input->get();
+          if (!input->good() || input->fail()) {
+            break;
+          }
+          if (!(ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r' ||
+            ch == ';' || ch == '{')) {
+            return TOKEN_TYPE_ERROR;
+          }
+          input->unget();
+          return TOKEN_TYPE_NORMAL;
+        }
+        *value += c;
+        continue;
+        case TOKEN_STATE_TOKEN_TYPE_COMMENT:
         if (c == '\n' || c == '\r') {
           return TOKEN_TYPE_COMMENT;
         }
@@ -194,20 +194,21 @@ NginxConfigParser::TokenType NginxConfigParser::ParseToken(std::istream* input,
           input->unget();
           return TOKEN_TYPE_NORMAL;
         }
-	if (c == '\\') {
-	  const char ch = input->get();
-	  if (!input->good() || input->fail()) {
-	    break;
-	  }
-	  if (ch == ' ' || ch == '\t' || ch == ';' ||
-	      ch == '{' || ch == '}' || ch == '#') {
-	    *value += ch;
-	  } else {
-	    *value += c;
-	    input->unget();
-	  }
-	  continue; 
-	}
+        if (c == '\\') {
+          const char ch = input->get();
+          if (!input->good() || input->fail()) {
+            break;
+          }
+          if (ch == ' ' || ch == '\t' || ch == ';' ||
+            ch == '{' || ch == '}' || ch == '#') {
+            *value += ch;
+          } 
+          else {
+            *value += c;
+            input->unget();
+          }
+          continue; 
+        }
         *value += c;
         continue;
     }

@@ -19,8 +19,9 @@ TEST_F(DispatcherTest, get_check) {
     EXPECT_NE(dis -> get_request_handler("/static/one"), nullptr);
 }
 
-// TEST_F(DispatcherTest, null_check) {
-//     parser_.Parse("one_valid", &config_);
-//     Dispatcher* dis = new Dispatcher(config_);
-//     EXPECT_EQ(dis -> get_request_handler("/statics/one"), nullptr);
-// }
+// Tests that we do at least have a handler since the 404 handler should have been initialized
+TEST_F(DispatcherTest, null_check) {
+    parser_.Parse("one_valid", &config_);
+    Dispatcher* dis = new Dispatcher(config_);
+    EXPECT_NE(dis -> get_request_handler("/statics/one"), nullptr);
+}
