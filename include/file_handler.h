@@ -8,9 +8,9 @@ class FileHandler : public RequestHandler {
 public:
   FileHandler(const std::string& location_path, const NginxConfig& config);
   
+private:
   http::response<http::string_body> handle_request(const http::request<http::string_body>& request) override;
   
-private:
   const char* mime_type(const http::request<http::string_body>& header);
   
   std::string prefix;

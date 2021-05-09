@@ -23,8 +23,6 @@ public:
   void handle_write(const boost::system::error_code& error);
 
   void fill_data_with(const std::string& msg);
-  
-  tcp::socket socket_;
 
 private:
   bool end_of_request() const;
@@ -32,7 +30,8 @@ private:
   void send_response();
 
   Dispatcher* dispatcher_;
-
+  tcp::socket socket_;
+  
   http::response<http::string_body> buffer_;
   enum { max_length = 1024000 };
   char data_[max_length];

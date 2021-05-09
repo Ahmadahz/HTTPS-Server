@@ -55,6 +55,12 @@ void session::send_response() {
   http::request_parser<http::string_body> parser;
   parser.eager(true);
   parser.put(boost::asio::buffer(data_, strlen(data_)), ec);
+
+  if (ec) {
+    BOOST_LOG_TRIVIAL(error) << "Error parsing the client HTTP request.";
+    return;
+  }
+  
   http::request<http::string_body> req = parser.get();
 
   std::string file_path(req.target().data(), req.target().size());
