@@ -28,6 +28,10 @@ TEST_F(NginxParserTest, EmptyConfig) {
   EXPECT_TRUE(parser_check(""));
 }
 
+TEST_F(NginxParserTest, EmptyBlockConfig) {
+  EXPECT_TRUE(parser_check("block { }"));
+}
+
 TEST_F(NginxParserTest, NonExistentFile) {
   EXPECT_FALSE(parser_check("bogus.config", true));
 }
@@ -73,7 +77,6 @@ TEST_F(NginxParserTest, QuoteWhitespaceConfig) {
 
 TEST_F(NginxParserTest, MalformedConfig) {
   EXPECT_FALSE(parser_check("http {{ listen 8080; }}"));
-  EXPECT_FALSE(parser_check("block { }"));
 }
 
 

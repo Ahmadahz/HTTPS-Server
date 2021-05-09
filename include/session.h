@@ -29,7 +29,7 @@ public:
 private:
   bool end_of_request() const;
   void append_data();
-  void build_response();
+  void send_response();
 
   Dispatcher* dispatcher_;
 

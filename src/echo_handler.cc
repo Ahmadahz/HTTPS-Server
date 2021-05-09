@@ -5,18 +5,6 @@ EchoHandler::EchoHandler(const std::string& location_path, const NginxConfig& co
   
 }
 
-std::vector<char> EchoHandler::generate_response(const Request& request) {
-  // Echo with the usual response.
-  
-  std::string response;
-  response += "HTTP/1.1 200 OK\r\n";
-  response += "Content-Type: text/plain\r\n";
-  response += "\r\n";
-  response += request.content;
-  std::vector<char> re(response.begin(), response.end());
-  return re;
-}
-
 http::response<http::string_body> EchoHandler::handle_request(const http::request<http::string_body>& request) {
   BOOST_LOG_TRIVIAL(trace) << "Entered EchoHandler handle_request.";
   

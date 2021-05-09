@@ -14,6 +14,7 @@
 #include <stack>
 #include <string>
 #include <vector>
+#include <boost/log/trivial.hpp>
 
 #include "config_parser.h"
 
@@ -245,7 +246,8 @@ bool NginxConfigParser::Parse(std::istream* config_file, NginxConfig* config) {
     if (token_type == TOKEN_TYPE_START) {
       // Error.
       break;
-    } else if (token_type == TOKEN_TYPE_NORMAL) {
+    }
+    else if (token_type == TOKEN_TYPE_NORMAL) {
       if (last_token_type == TOKEN_TYPE_START ||
           last_token_type == TOKEN_TYPE_STATEMENT_END ||
           last_token_type == TOKEN_TYPE_START_BLOCK ||
@@ -261,12 +263,14 @@ bool NginxConfigParser::Parse(std::istream* config_file, NginxConfig* config) {
         // Error.
         break;
       }
-    } else if (token_type == TOKEN_TYPE_STATEMENT_END) {
+    }
+    else if (token_type == TOKEN_TYPE_STATEMENT_END) {
       if (last_token_type != TOKEN_TYPE_NORMAL) {
         // Error.
         break;
       }
-    } else if (token_type == TOKEN_TYPE_START_BLOCK) {
+    }
+    else if (token_type == TOKEN_TYPE_START_BLOCK) {
       if (last_token_type != TOKEN_TYPE_NORMAL) {
         // Error.
         break;
@@ -277,34 +281,39 @@ bool NginxConfigParser::Parse(std::istream* config_file, NginxConfig* config) {
       config_stack.push(new_config);
 
       bracket_stack.push(token_type);
-    } else if (token_type == TOKEN_TYPE_END_BLOCK) {
+    }
+    else if (token_type == TOKEN_TYPE_END_BLOCK) {
       if (last_token_type != TOKEN_TYPE_STATEMENT_END &&
-	  last_token_type != TOKEN_TYPE_END_BLOCK) {
+          last_token_type != TOKEN_TYPE_START_BLOCK &&
+          last_token_type != TOKEN_TYPE_END_BLOCK) {
         // Error.
         break;
       }
       config_stack.pop();
       
       if (bracket_stack.empty()) {
-	// Error.
-	break;
+        // Error: Unbalanced brackets.
+        break;
       }
       bracket_stack.pop();
-    } else if (token_type == TOKEN_TYPE_QUOTED_STRING) {
+    }
+    else if (token_type == TOKEN_TYPE_QUOTED_STRING) {
       ;
-    } else if (token_type == TOKEN_TYPE_EOF) {
+    }
+    else if (token_type == TOKEN_TYPE_EOF) {
       if (last_token_type != TOKEN_TYPE_STATEMENT_END &&
           last_token_type != TOKEN_TYPE_END_BLOCK &&
-	  last_token_type != TOKEN_TYPE_START) {
+          last_token_type != TOKEN_TYPE_START) {
         // Error.
         break;
       }
       if (!bracket_stack.empty()) {
-	// Error.
-	break;
+        // Error.
+        break;
       }
       return true;
-    } else {
+    }
+    else {
       // Error. Unknown token.
       break;
     }
@@ -360,7 +369,7 @@ bool NginxConfigParser::GetPortNumber(const NginxConfig& out_config, short& port
 
       // No port number found between `listen' and `;'.
       if (port_end_pos == port_start_pos) {
-        std::cerr << "No port number provided." << std::endl;
+        BOOST_LOG_TRIVIAL(trace) << "No port number provided." << std::endl;
         return false;
       }
 
@@ -368,14 +377,14 @@ bool NginxConfigParser::GetPortNumber(const NginxConfig& out_config, short& port
           port_end_pos - port_start_pos);
         
       if (port.find_first_not_of("0123456789") != std::string::npos) {
-        std::cerr << "Port number must be a postive integer. Port given: " + \
+        BOOST_LOG_TRIVIAL(trace) << "Port number must be a postive integer. Port given: " + \
             port << std::endl;
             return false;
           }
 
      int int_port = stoi(port);
       if (int_port < 0 || int_port > 65535) {
-        std::cerr << "Port numbers must be between 0 and 65535." << std::endl;
+        BOOST_LOG_TRIVIAL(trace) << "Port numbers must be between 0 and 65535." << std::endl;
         return false;
       }
 
@@ -384,7 +393,7 @@ bool NginxConfigParser::GetPortNumber(const NginxConfig& out_config, short& port
       return true;
     }
     else {
-      std::cerr << "\"listen\" token not found." << std::endl;
+      BOOST_LOG_TRIVIAL(trace) << "\"listen\" token not found." << std::endl;
       return false;
     }
   }

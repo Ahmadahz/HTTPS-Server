@@ -48,13 +48,8 @@ void session::append_data() {
 	boost::asio::placeholders::bytes_transferred));
 }
 
-void session::build_response() {
-  BOOST_LOG_TRIVIAL(trace) << "In session::build_response: In build_response.\n";
-  
-  std::vector<char> response;
-  Request request = RequestHandler::parse_request(data_);
-
-  http::response<http::string_body> resp;
+void session::send_response() {
+  BOOST_LOG_TRIVIAL(trace) << "In session::send_response: In send_response.\n";
   
   boost::system::error_code ec;
   http::request_parser<http::string_body> parser;
@@ -62,28 +57,25 @@ void session::build_response() {
   parser.put(boost::asio::buffer(data_, strlen(data_)), ec);
   http::request<http::string_body> req = parser.get();
 
-  BOOST_LOG_TRIVIAL(trace) << "Request target: " << req.target().data();
+  std::string file_path(req.target().data(), req.target().size());
+
+  BOOST_LOG_TRIVIAL(trace) << "Request target: " << file_path;
   
-  BOOST_LOG_TRIVIAL(trace) << "In session::build_response: File Path: " << request.path << "\n";
-  
-  RequestHandler* handler = dispatcher_->get_request_handler(request.path);
+  RequestHandler* handler = dispatcher_->get_request_handler(file_path);
   if (handler) {
-    BOOST_LOG_TRIVIAL(trace) << "In session::build_response: Request handler found for: " << request.path;
-    //response = handler->generate_response(request);
+    BOOST_LOG_TRIVIAL(trace) << "In session::send_response: Request handler found for: " << file_path;
+    
     buffer_ = handler->handle_request(req);
 
     BOOST_LOG_TRIVIAL(trace) << "Body of response: " << buffer_.body();
   }
   else {
-    BOOST_LOG_TRIVIAL(info) << "In session::build_response: No request handler found for: " << request.path;
+    BOOST_LOG_TRIVIAL(info) << "In session::send_response: No request handler found for: " << file_path;
   }
 
   http::async_write(socket_, buffer_,
       boost::bind(&session::handle_write, this,
                   boost::asio::placeholders::error));
-
-  //std::copy(response.begin(), response.end(), data_);
-  //data_len_ = response.size();
 }
 
 void session::fill_data_with(const std::string& msg) {
@@ -102,12 +94,7 @@ void session::handle_read(const boost::system::error_code& error,
       append_data();
     }
     else {
-      build_response();
-    
-      //boost::asio::async_write(socket_,
-      //  boost::asio::buffer(data_, data_len_),
-      //    boost::bind(&session::handle_write, this,
-      //    boost::asio::placeholders::error));
+      send_response();
     }
   }
   else {

@@ -7,9 +7,7 @@
 class FileHandler : public RequestHandler {
 public:
   FileHandler(const std::string& location_path, const NginxConfig& config);
-  FileHandler(const NginxConfig &config, const std::string &prefix);
-
-  std::vector<char> generate_response(const Request& request) override;
+  
   http::response<http::string_body> handle_request(const http::request<http::string_body>& request) override;
   
 private:
