@@ -33,5 +33,5 @@ location "/static6/" FileHandler { #backslashes not really used in url
 }
 
 location /echo/ EchoHandler {
-    empty /stmt;
+
 }

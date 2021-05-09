@@ -33,9 +33,12 @@ response=$(printf '%s\r\n%s\r\n%s\r\n\r\n'            \
                | nc 35.197.104.232 80)
 
 echo $response > echo_test
+
+curl -i -s 35.197.104.232:80/echo/hell > test_response
+
 echo -n "Test 1:"
 
-DIFF=$(diff ../tests/expected_echo1 echo_test)
+DIFF=$(diff ../tests/expected_echo1 test_response)
 EXIT_STATUS=$?
 
 if [ "$EXIT_STATUS" -eq 0 ]; then
@@ -69,12 +72,13 @@ fi
     "GET /static/hell.txt HTTP/1.1"          \
     "Host: www.test.com"                    \
     "Connection: close"                     \
-    | nc 35.197.104.232 80) > bin/txt_test
+    | nc 35.197.104.232 80) > txt_test
 
+curl -i -s 35.197.104.232:80/static/hell.txt > txt_test
 # Check if txt file response isn't corrupted
 
-diff bin/txt_test bin/txt_response
 echo -n "Test 3:"
+diff txt_test ../tests/txt_response_new
 if [ "$?" -eq 0 ]; then
     echo "SUCCESS";
 else 
