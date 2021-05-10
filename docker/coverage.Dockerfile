@@ -2,7 +2,7 @@ FROM lark:base as builder
 
 # Share work directory
 COPY . /usr/src/project
-WORKDIR /usr/src/project/build_coverage
+WORKDIR /usr/src/project/build
 
 RUN pwd
 RUN cmake ..
