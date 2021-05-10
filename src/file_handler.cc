@@ -32,6 +32,17 @@ http::response<http::string_body> FileHandler::handle_request(const http::reques
     std::ifstream ifile;
     
     size_t file_start_pos = request.target().find("/", 1);
+    if ((file_start_pos == request.target().size() - 1) || (file_start_pos == std::string::npos)) {
+      BOOST_LOG_TRIVIAL(info) << "Need file path, file_start_pos = : " << file_start_pos;
+      BOOST_LOG_TRIVIAL(info) << "request.target().size() = : " << request.target().size();
+      
+      response.result(404);
+      response.set(http::field::content_type, "text/html");
+      response.body() = "<h1>404 Not Found</h1>";
+      response.prepare_payload();
+      return response;
+    }
+
     std::string file(request.target().substr(file_start_pos, std::string::npos).data(), request.target().size() - file_start_pos);
     
     std::string path(root + file, 0);
