@@ -49,5 +49,26 @@ else
     exit 1;
 fi
 
+
+#Test should not return without \r\n\r\n at the end
+#Wait for 1s timeout then check
+response2=$(printf '%s\r\n%s\r\n%s\r\n'  \
+    "GET /echo HTTP/1.1"                \
+    "Host: www.test.com"                \
+    "Connection: close"                 \
+    | nc 127.0.0.1 80) &
+pid=$!
+sleep 1 && kill -9 $pid
+echo -n "Test 2:"
+if [ "$response2" = "" ]; then 
+    echo "SUCCESS"; 
+else 
+    echo "FAIL"; 
+    kill -9 $pid_server
+    exit 1;
+fi
+
+
+
 kill -9 $pid_server
 exit 0
