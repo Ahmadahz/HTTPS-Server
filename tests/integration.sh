@@ -34,7 +34,7 @@ response=$(printf '%s\r\n%s\r\n%s\r\n\r\n'            \
 
 echo $response > echo_test
 
-curl -i -s 35.197.104.232:80/echo/hell > test_response
+curl -i -s 127.0.0.1:80/echo/hell > test_response
 
 echo -n "Test 1:"
 
@@ -42,44 +42,6 @@ DIFF=$(diff ../tests/expected_echo1 test_response)
 EXIT_STATUS=$?
 
 if [ "$EXIT_STATUS" -eq 0 ]; then
-    echo "SUCCESS";
-else 
-    echo "FAIL"; 
-    kill -9 $pid_server
-    exit 1;
-fi
-
-#Test should not return without \r\n\r\n at the end
-#Wait for 1s timeout then check
-response2=$(printf '%s\r\n%s\r\n%s\r\n'  \
-    "GET /echo HTTP/1.1"                \
-    "Host: www.test.com"                \
-    "Connection: close"                 \
-    | nc 127.0.0.1 80) &
-pid=$!
-sleep 1 && kill -9 $pid
-echo -n "Test 2:"
-if [ "$response2" = "" ]; then 
-    echo "SUCCESS"; 
-else 
-    echo "FAIL"; 
-    kill -9 $pid_server
-    exit 1;
-fi
-
-
-(printf '%s\r\n%s\r\n%s\r\n\r\n'            \
-    "GET /static/hell.txt HTTP/1.1"          \
-    "Host: www.test.com"                    \
-    "Connection: close"                     \
-    | nc 35.197.104.232 80) > txt_test
-
-curl -i -s 35.197.104.232:80/static/hell.txt > txt_test
-# Check if txt file response isn't corrupted
-
-echo -n "Test 3:"
-diff txt_test ../tests/txt_response_new
-if [ "$?" -eq 0 ]; then
     echo "SUCCESS";
 else 
     echo "FAIL"; 
