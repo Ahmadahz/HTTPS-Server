@@ -5,24 +5,51 @@ We have 5 main folders for this webserver:
 1. Config:
   The configuration files that the server use to process the requests
 2. Docker:
-  This file has the base and main docker files to create the required images for the webserver
+  This folder has the base and main docker files to create the required images for the webserver
 3. Files:
   Contains all the data files such as the jpg and zip files that the client can request
 4. Src:
-  The main code for server, session and other necessary components for the webserver is in this folder
+  The main code for server, session and other necessary components of the webserver is in this folder
 5. Test:
   All unit tests that check the functionality of main files
   
+The main process looks like this:
+##### server_main.cc --> server.cc --> session.cc --> dispatcher.cc --> file_handler.cc or echo_handler.cc  
+
 The webserver starts from the server.cc file. This file uses the config file to set the port number and 
 after getting a request message from a client it starts a session by using the session.cc file. At first, 
-the session file uses the handler to get the information of the request and after that it sends the 
-information to echo or static handlers to create the response message and send it back to the client. 
+the session file uses the dispatcher to find the required information and path from the request. After that we
+call the file_handler.cc or echo_handler.cc to create the response depending on the request.
 
 ## 2. Build and Test
-
-For building, checking all unit tests and running the server you need to enter these commands: 
-
-Run this command for making the base image.(Note: After using these commands, when you change 
+#### Build: 
+Create a build directory and use cmake to build 
+~~~
+  mkdir build
+  cd build
+  cmake ..
+  make
+~~~
+#### Unit Test:
+This command will check all unit tests
+~~~
+  cd build
+  make test
+~~~
+#### Integration Test:
+~~~
+  cd build
+  ../tests/test.sh
+~~~
+#### Run The Server:
+Run the server with this command. You can add a new config file to the config folder and run the server with that
+~~~
+  cd build
+  ./bin/server ../config/static_config
+~~~
+#### Docker Build:
+If you want you can build and run the server with the docker commands below.
+Run this command for making the base image. (Note: After using these commands, when you change 
 the code in any of the files you don't need to run the first command again)
 ~~~~
   docker build -f docker/base.Dockerfile -t lark:base .
@@ -38,11 +65,7 @@ For running the server use this command
  docker run --rm -p 127.0.0.1:80:80 --name my_run my_test:latest
 ~~~
 
-For convenience, a docker_build.sh script has been added that can run these commands for you.
-
-For testing different requests you can enter links similar to "http://localhost/static/hell.txt" in your browser.
-
-Sample test files can be found in Test.
+For testing with different requests you can enter links similar to "http://localhost/static/hell.txt" in your browser
 
 ## 3. Add a Request Handler
 

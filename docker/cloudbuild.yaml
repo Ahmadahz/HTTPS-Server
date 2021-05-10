@@ -27,7 +27,7 @@ steps:
   args: [
     'build',
     '-f', 'docker/coverage.Dockerfile',
-    '-t', 'gcr.io/$PROJECT_ID/lark:latest',
+    '-t', 'gcr.io/$PROJECT_ID/lark_coverage:latest',
     '.'
   ]
 images: ['gcr.io/$PROJECT_ID/lark:base', 'gcr.io/$PROJECT_ID/lark:latest']
