@@ -74,14 +74,17 @@ void session::send_response() {
     buffer_ = handler->handle_request(req);
 
     BOOST_LOG_TRIVIAL(trace) << "Body of response: " << buffer_.body();
-  }
-  else {
-    BOOST_LOG_TRIVIAL(info) << "In session::send_response: No request handler found for: " << file_path;
-  }
 
-  http::async_write(socket_, buffer_,
+    http::async_write(socket_, buffer_,
       boost::bind(&session::handle_write, this,
                   boost::asio::placeholders::error));
+  }
+  else {
+    // This should never be entered since the 404 handler should always
+    // be created from get_request_handler in exceptional cases.
+    
+    BOOST_LOG_TRIVIAL(info) << "In session::send_response: No request handler found for: " << file_path;
+  }
 }
 
 void session::fill_data_with(const std::string& msg) {
@@ -91,7 +94,7 @@ void session::fill_data_with(const std::string& msg) {
 void session::handle_read(const boost::system::error_code& error,
     size_t bytes_transferred) {
   if (!error) {
-    BOOST_LOG_TRIVIAL(trace) << "In handle_read received more messages. In Buffer:\n" << data_;
+    BOOST_LOG_TRIVIAL(trace) << "In session::handle_read, received more data. In Buffer:\n" << data_;
     
     // Implements the basic http echo requests from assignment 2.
     // Uses double newline characters to detect end of requests.

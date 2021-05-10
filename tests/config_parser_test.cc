@@ -116,14 +116,6 @@ TEST_F(HttpEchoTest, BasicConfig) {
   EXPECT_EQ(port_number_, 80);
 }
 
-// multi_config is old syntax and obsolete nows
-// TEST_F(HttpEchoTest, MultilineConfig) {
-//   EXPECT_TRUE(parse("../config/multi_config", true));
-
-//   EXPECT_TRUE(port_number());
-//   EXPECT_EQ(port_number_, 8080);
-// }
-
 TEST_F(HttpEchoTest, NoPortConfig) {
   EXPECT_TRUE(parse("listen;"));
   EXPECT_FALSE(port_number());

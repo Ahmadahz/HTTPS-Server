@@ -2,6 +2,7 @@
 #include "echo_handler.h"
 #include "file_handler.h"
 #include "handler.h"
+#include "404_handler.h"
 #include "config_parser.h"
 
 namespace http = boost::beast::http;
@@ -96,13 +97,12 @@ TEST_F(FileHandlerTest, Unsupported_Mime) {
   EXPECT_EQ(response[http::field::content_type], "unsupported");
 }
 
-/*
-TEST_F(FileHandlerTest, error_404_check){
-  std::string error_response;
-  std::string error_path = "/static/none.html";
-  Request request_error = RequestHandler::parse_request(error_path.c_str());
-  Dispatcher* dispatcher_;
-  error_response = (auto temp_fh )->generate_response(request_error);
-  EXPECT_EQ(error_response, response_404);
+TEST_F(FileHandlerTest, 404Handler_Check) {
+  http::request<http::string_body> bad_request = make_request("GET /bad/file.txt HTTP/1.1\r\n");
+  RequestHandler* handler = new _404Handler("", config_);
+
+  http::response<http::string_body> response;
+  response = handler->handle_request(bad_request);
+  std::string response_body(response.body().data(), response.body().size());
+  EXPECT_EQ(response_body, "<h1>404 Not Found</h1>");
 }
-*/
