@@ -15,10 +15,10 @@ public:
     int get_regnum() {return regnum;}
     RequestHandler* get_request_handler(const std::string& uri) const;
     int init_handlers(const NginxConfig& config);
-    bool find_path(const NginxConfig& config, std::string path, std::string handler_type);
+    static std::map<std::string, RequestHandler*> handlers_; 
 private:
-    std::map<std::string, RequestHandler*> handlers_; 
     int regnum;
+    bool add_handler(const NginxConfig& config, std::string path, std::string handler_type);
 };
 
 #endif

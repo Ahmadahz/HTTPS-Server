@@ -8,6 +8,7 @@
 #include "file_handler.h"
 #include "echo_handler.h"
 #include "404_handler.h"
+#include "status_handler.h"
 
 
 /*
@@ -75,7 +76,7 @@ int Dispatcher::init_handlers(const NginxConfig& config) {
       BOOST_LOG_TRIVIAL(trace) << "In Dispatcher::get_request_handler: location format error";
       continue; // Formatting Error
     }
-    if (find_path(*(stmt-> child_block_), stmt -> tokens_[1], stmt -> tokens_[2])) {
+    if (add_handler(*(stmt-> child_block_), stmt -> tokens_[1], stmt -> tokens_[2])) {
       reg_num++;
     }
   }
@@ -87,16 +88,16 @@ int Dispatcher::init_handlers(const NginxConfig& config) {
 }
 
 /*
-  find_path() called by init_handlers to add one handler
+  add_handler() called by init_handlers to add one handler
   Returns true if a handler was successfully added
 */
-bool Dispatcher::find_path(const NginxConfig& config, std::string path, std::string handler_type) {
+bool Dispatcher::add_handler(const NginxConfig& config, std::string path, std::string handler_type) {
   while (path.length() > 1 && path.back() == '/') {
     path.pop_back();
   }
 
   if (handlers_.find(path) != handlers_.end()) {
-    BOOST_LOG_TRIVIAL(trace) << "In Dispatcher::find_path: Path found but already handled: " << path;
+    BOOST_LOG_TRIVIAL(trace) << "In Dispatcher::add_handler: Path found but already handled: " << path;
     return false; // Already added
   }
 
@@ -109,11 +110,16 @@ bool Dispatcher::find_path(const NginxConfig& config, std::string path, std::str
   else if (handler_type == "404Handler") {
     handlers_[path] = new _404Handler(path, config);
   }
+  else if (handler_type == "StatusHandler") {
+    handlers_[path] = new StatusHandler(path, config);
+  }
   else {
-    BOOST_LOG_TRIVIAL(trace) << "In Dispatcher::find_path: Handlertype couldn't be found";
+    BOOST_LOG_TRIVIAL(trace) << "In Dispatcher::add_handler: Handlertype couldn't be found";
     return false;
   }
-  BOOST_LOG_TRIVIAL(trace) << "In Dispatcher::find_path: Path found: " << path << " handled as: " << handler_type;
+  BOOST_LOG_TRIVIAL(trace) << "In Dispatcher::add_handler: Path found: " << path << " handled as: " << handler_type;
   
   return true;
 }
+
+std::map<std::string, RequestHandler*> Dispatcher::handlers_; 

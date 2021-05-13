@@ -6,7 +6,7 @@ EchoHandler::EchoHandler(const std::string& location_path, const NginxConfig& co
 }
 
 http::response<http::string_body> EchoHandler::handle_request(const http::request<http::string_body>& request) {
-  BOOST_LOG_TRIVIAL(trace) << "Entered EchoHandler handle_request.";
+  BOOST_LOG_TRIVIAL(trace) << "Entered EchoHandler::handle_request.";
   
   http::response<http::string_body> response;
   response.result(200);

@@ -6,9 +6,6 @@
 #include <boost/beast/http.hpp>
 
 #include "session.h"
-#include "echo_handler.h"
-#include "file_handler.h"
-#include "404_handler.h"
 
 using boost::asio::ip::tcp;
 namespace http = boost::beast::http;
@@ -134,3 +131,5 @@ void session::handle_write(const boost::system::error_code& error)
   }
 }
 
+int session::request_count = 0;
+std::map<std::string, std::vector<int>> session::handled_requests;

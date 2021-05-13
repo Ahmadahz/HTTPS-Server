@@ -24,6 +24,9 @@ public:
 
   void fill_data_with(const std::string& msg);
 
+  static int request_count;
+  static std::map<std::string, std::vector<int>> handled_requests;
+
 private:
   bool end_of_request() const;
   void append_data();

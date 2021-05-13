@@ -23,7 +23,7 @@ FileHandler::FileHandler(const std::string& location_path, const NginxConfig& co
 }
 
 http::response<http::string_body> FileHandler::handle_request(const http::request<http::string_body>& request) {
-  BOOST_LOG_TRIVIAL(trace) << "Entered FileHandler handle_request.";
+  BOOST_LOG_TRIVIAL(trace) << "Entered FileHandler::handle_request.";
   
   http::response<http::string_body> response;
 
