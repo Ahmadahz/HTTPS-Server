@@ -8,10 +8,10 @@ class NginxConfig;
 class EchoHandler : public RequestHandler {
 public:
   EchoHandler(const std::string& location_path, const NginxConfig& config);
+  std::string to_string() const override {return "EchoHandler";}
   
 private:
   http::response<http::string_body> handle_request(const http::request<http::string_body>& request) override;
-  
 };
 
 #endif

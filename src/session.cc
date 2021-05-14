@@ -10,7 +10,7 @@
 using boost::asio::ip::tcp;
 namespace http = boost::beast::http;
 
-session:: session(boost::asio::io_service& io_service, Dispatcher* dispatcher)
+session::session(boost::asio::io_service& io_service, Dispatcher* dispatcher)
   : socket_(io_service) {
     dispatcher_ = dispatcher;
 }
@@ -60,16 +60,17 @@ void session::send_response() {
   
   http::request<http::string_body> req = parser.get();
 
-  std::string file_path(req.target().data(), req.target().size());
+  std::string uri(req.target().data(), req.target().size());
 
-  BOOST_LOG_TRIVIAL(trace) << "Request target: " << file_path;
+  BOOST_LOG_TRIVIAL(trace) << "Request target: " << uri;
   
-  RequestHandler* handler = dispatcher_->get_request_handler(file_path);
+  RequestHandler* handler = dispatcher_->get_request_handler(uri);
   if (handler) {
-    BOOST_LOG_TRIVIAL(trace) << "In session::send_response: Request handler found for: " << file_path;
+    BOOST_LOG_TRIVIAL(trace) << "In session::send_response: Request handler found for: " << uri;
     
     buffer_ = handler->handle_request(req);
-
+    request_count++;
+    handled_requests[uri].push_back(buffer_.result_int());
     BOOST_LOG_TRIVIAL(trace) << "Body of response: " << buffer_.body();
 
     http::async_write(socket_, buffer_,
@@ -80,7 +81,7 @@ void session::send_response() {
     // This should never be entered since the 404 handler should always
     // be created from get_request_handler in exceptional cases.
     
-    BOOST_LOG_TRIVIAL(info) << "In session::send_response: No request handler found for: " << file_path;
+    BOOST_LOG_TRIVIAL(info) << "In session::send_response: No request handler found for: " << uri;
   }
 }
 

@@ -1,7 +1,7 @@
 #include "404_handler.h"
 #include <boost/log/trivial.hpp>
 
-_404Handler::_404Handler(const std::string& location_path, const NginxConfig& config) {
+_404Handler::_404Handler(const std::string& location_path, const NginxConfig& config) : RequestHandler() {
   
 }
 

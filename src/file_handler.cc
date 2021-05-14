@@ -10,7 +10,7 @@
 
 namespace http = boost::beast::http;
 
-FileHandler::FileHandler(const std::string& location_path, const NginxConfig& config) {
+FileHandler::FileHandler(const std::string& location_path, const NginxConfig& config) : RequestHandler() {
   prefix = location_path;
   root = "/";
   for (auto statement : config.statements_) {

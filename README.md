@@ -74,6 +74,10 @@ To add a request handler, the handler must be derived from the RequestHandler cl
 ~~~~
 http::response<http::string_body> handle_request(const http::request<http::string_body>& request) override;
 ~~~~
+A handler must also implement a "to_string" method that has a similar signature to the following:
+~~~
+std::string to_string() const override {return "HandlerType";}
+~~~
 Once the handler class has been implemented, it needs to be incorporated into the Dispatcher class so that it
 will get initialized and called.
 
