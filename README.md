@@ -74,27 +74,24 @@ To add a request handler, the handler must be derived from the RequestHandler cl
 ~~~~
 http::response<http::string_body> handle_request(const http::request<http::string_body>& request) override;
 ~~~~
-A handler must also implement a "to_string" method that has a similar signature to the following:
-~~~
-std::string to_string() const override {return "HandlerType";}
-~~~
+
 Once the handler class has been implemented, it needs to be incorporated into the Dispatcher class so that it
 will get initialized and called.
 
 The file containing the definition of the handler must be included in the dispatcher.cc file.
 ~~~
-#include #include "echo_handler.h"
+#include "echo_handler.h"
 ~~~
 Then a line must be added in the find_path method of the dispatcher in the if else chain to initialize the 
 handler in the following manner:
 ~~~~
 else if (handler_type == "EchoHandler") {
     handlers_[path] = new EchoHandler(path, config);
+    handler_info[path] = "EchoHandler";
 }
 ~~~~
 The handler must be initialized using a string variable called "path" and a NginxConfig& config variable called "config".
-In addition, the handler type must be specified in the config file for the dispatcher to identify the handler and initialize
-it appropriately. An example of a config file format is shown in the next section.
+In addition, the handler type must be specified in the config file for the dispatcher to identify the handler and initialize it appropriately. An example of a config file format is shown in the next section.
 
 ## 4. Config File Format
 ~~~~

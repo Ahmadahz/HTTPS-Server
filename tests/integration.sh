@@ -10,13 +10,16 @@ EX_PATH="./bin/server"
 echo "
 listen 80;
 
+location /echo/ EchoHandler {
+}
+
 location /static/ FileHandler {
     root /bar;
 }
 
-location /echo/ EchoHandler {
-    empty /stmt;
-}" > temp_config_file
+location /status/ StatusHandler {
+}
+" > temp_config_file
 
 #Start the server
 $EX_PATH temp_config_file & 
@@ -30,7 +33,7 @@ response=$(printf '%s\r\n%s\r\n%s\r\n\r\n'            \
 			    "GET /echo/hell HTTP/1.1"         \
 			   "Host: www.test.com"                   \
                "Connection: close"                    \
-               | nc 35.197.104.232 80)
+               | nc 127.0.0.1 80)
 
 echo $response > echo_test
 
@@ -49,6 +52,18 @@ else
     exit 1;
 fi
 
+# curl -i -s 127.0.0.1:80/status > status_out
+
+# DIFF=$(diff status_out test_status)
+# EXIT_STATUS=$?
+
+# if [ "$EXIT_STATUS" -eq 0 ]; then
+#     echo "SUCCESS";
+# else 
+#     echo "FAIL"; 
+#     kill -9 $pid_server
+#     exit 1;
+# fi
 
 #Test should not return without \r\n\r\n at the end
 #Wait for 1s timeout then check

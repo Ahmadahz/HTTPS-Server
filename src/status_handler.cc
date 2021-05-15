@@ -1,7 +1,4 @@
 #include "status_handler.h"
-#include <boost/log/trivial.hpp>
-#include "session.h"
-#include "dispatcher.h"
 
 StatusHandler::StatusHandler(const std::string& location_path, const NginxConfig& config) : RequestHandler() {
   
@@ -19,8 +16,8 @@ http::response<http::string_body> StatusHandler::handle_request(const http::requ
     }
   }
 
-  for (auto it = Dispatcher::handlers_.begin(); it != Dispatcher::handlers_.end(); it++) {
-    handler_info += "<tr><td>" + it->first + "</td><td>" + it->second->to_string() + "</td></tr>" ;
+  for (auto it = Dispatcher::handler_info.begin(); it != Dispatcher::handler_info.end(); it++) {
+    handler_info += "<tr><td>" + it->first + "</td><td>" + it->second + "</td></tr>" ;
   }
 
   std::string display_content = "<h1>Total number of requests</h1><div>"+ std::to_string(session::request_count) +"</div>"

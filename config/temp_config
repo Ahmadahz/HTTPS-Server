@@ -1,0 +1,11 @@
+listen 80;
+
+location /echo/ EchoHandler {
+}
+
+location /static/ FileHandler {
+    root /bar;
+}
+
+location /status/ StatusHandler {
+}

@@ -20,6 +20,7 @@ FROM ubuntu:focal as deploy
 COPY --from=builder /usr/src/project/build/bin/server .
 # Copy configuration file output to "." (Was required from the instructions)
 COPY --from=builder /usr/src/project/config/static_config .
+# COPY --from=builder /usr/src/project/config/temp_config .
 #Copy static data files
 COPY --from=builder /usr/src/project/files .
 # TODO(ahmadhz): Expose some port(s)
@@ -36,3 +37,4 @@ ENTRYPOINT ["./server"]
 # Note: The argument can be overwritten
 # Note: We can add more arguments later
 CMD ["static_config"]
+# CMD ["temp_config"]

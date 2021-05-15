@@ -16,8 +16,8 @@
   been called, all members should be immutable
 */
 Dispatcher::Dispatcher(const NginxConfig& config) {
-  regnum = init_handlers(config);
-  BOOST_LOG_TRIVIAL(trace) << "In Dispatcher::Dispatcher: Number of Handlers Registered: " << regnum;
+  regnum_ = init_handlers(config);
+  BOOST_LOG_TRIVIAL(trace) << "In Dispatcher::Dispatcher: Number of Handlers Registered: " << regnum_;
 }
 
 /*  
@@ -66,6 +66,7 @@ int Dispatcher::init_handlers(const NginxConfig& config) {
   size_t reg_num = 0;
   std::string path = "/";
   handlers_[path] = new _404Handler(path, config);
+  Dispatcher::handler_info[path] = "404Handler";
   reg_num++;
   for (auto stmt : config.statements_) {
     if (stmt -> tokens_.size() < 3 && stmt -> tokens_[0] != "listen") {
@@ -83,6 +84,11 @@ int Dispatcher::init_handlers(const NginxConfig& config) {
   BOOST_LOG_TRIVIAL(trace) << "Handlers: ";
   for (auto handlers : handlers_) {
     BOOST_LOG_TRIVIAL(trace) << handlers.first << ": " << handlers.second;
+  }
+
+  BOOST_LOG_TRIVIAL(trace) << "Stored Handlers: ";
+  for (auto pairs: handler_info) {
+    BOOST_LOG_TRIVIAL(trace) << pairs.first << ": " << pairs.second;
   }
   return reg_num;
 }
@@ -103,15 +109,19 @@ bool Dispatcher::add_handler(const NginxConfig& config, std::string path, std::s
 
   if (handler_type == "FileHandler") {
     handlers_[path] = new FileHandler(path, config);
+    handler_info[path] = "FileHandler";
   }
   else if (handler_type == "EchoHandler") {
     handlers_[path] = new EchoHandler(path, config);
+    handler_info[path] = "EchoHandler";
   }
   else if (handler_type == "404Handler") {
     handlers_[path] = new _404Handler(path, config);
+    handler_info[path] = "404Handler";
   }
   else if (handler_type == "StatusHandler") {
     handlers_[path] = new StatusHandler(path, config);
+    handler_info[path] = "StatusHandler";
   }
   else {
     BOOST_LOG_TRIVIAL(trace) << "In Dispatcher::add_handler: Handlertype couldn't be found";
@@ -122,4 +132,4 @@ bool Dispatcher::add_handler(const NginxConfig& config, std::string path, std::s
   return true;
 }
 
-std::map<std::string, RequestHandler*> Dispatcher::handlers_; 
+std::map<std::string, std::string> Dispatcher::handler_info; 
