@@ -1,0 +1,46 @@
+listen 8080;
+
+location /static/ FileHandler {
+    root /bar;
+}
+
+location /static2/ FileHandler {
+    root /oof;
+}
+
+location "/static3/" FileHandler {
+    root "/optionalQuotes";
+}
+
+location "/static4/" FileHandler { 
+    root "/with Space";            
+}
+
+location "/static%204/" FileHandler { #%20 is encoding a space in the url, added for fun 
+    root "/with Space";               #but what is important is the file path
+}
+
+location "/static5/" FileHandler {
+    root "/with\"";                      
+}
+
+location "/static%225%22/" FileHandler { #%22 is encoding for " in the url, added for fun
+    root "/with\"";                      #but what is important is the file path
+}
+
+location "/static6/" FileHandler { #backslashes not really used in url 
+    root "/with\\"";
+}
+
+location /echo/ EchoHandler {
+
+}
+
+location /status StatusHandler {
+    
+}
+
+location /proxy/ ProxyHandler {
+    host http://localhost/
+    port 8080
+}

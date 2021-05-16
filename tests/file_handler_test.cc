@@ -1,8 +1,9 @@
 #include "gtest/gtest.h"
+#include "handler.h"
 #include "echo_handler.h"
 #include "file_handler.h"
-#include "handler.h"
 #include "404_handler.h"
+#include "proxy_handler.h"
 #include "config_parser.h"
 
 namespace http = boost::beast::http;
@@ -33,6 +34,7 @@ protected:
   std::string jpg_req = "GET /static/file.jpg HTTP/1.1\r\n";
   std::string zip_req = "GET /static/file.zip HTTP/1.1\r\n";
   std::string echo_req = "GET /echo HTTP/1.1\r\n";
+  std::string proxy_txt_req = "GET /proxy/static/hell.txt HTTP/1.1\r\n";
   // std::string status_req = "GET /status HTTP/1.1\r\n";
 
 private:
@@ -106,6 +108,17 @@ TEST_F(FileHandlerTest, 404Handler_Check) {
   response = handler->handle_request(bad_request);
   std::string response_body(response.body().data(), response.body().size());
   EXPECT_EQ(response_body, "<h1>404 Not Found</h1>");
+}
+
+TEST_F(FileHandlerTest, Proxy_Check) {
+  http::request<http::string_body> proxy_txt_request = make_request(proxy_txt_req);
+
+  RequestHandler* handler = new ProxyHandler("", config_);
+
+  http::response<http::string_body> response;
+  response = handler->handle_request(proxy_txt_request);
+  EXPECT_EQ(response[http::field::content_type], "text/plain");
+
 }
 
 // TEST_F(FileHandlerTest, StatusHandler_Check) {
