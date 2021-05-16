@@ -14,6 +14,7 @@ private:
 
   std::string prefix;
   std::string host;
+  std::string path;
   std::string port;
 };
 
