@@ -24,6 +24,7 @@ protected:
 
   NginxConfigParser config_parser_;
   NginxConfig config_;
+  NginxConfig proxy_config_;
   std::istringstream ss_;
   
   std::string response_404 = "HTTP/1.1 404 Not Found\nContent-Length: 22\nContent-Type: text/html\n\n<h1>404 Not Found</h1>";
@@ -34,16 +35,16 @@ protected:
   std::string jpg_req = "GET /static/file.jpg HTTP/1.1\r\n";
   std::string zip_req = "GET /static/file.zip HTTP/1.1\r\n";
   std::string echo_req = "GET /echo HTTP/1.1\r\n";
-  std::string proxy_txt_req = "GET /proxy/static/hell.txt HTTP/1.1\r\n";
+  std::string proxy_req = "GET /proxy/ HTTP/1.1\r\n";
   // std::string status_req = "GET /status HTTP/1.1\r\n";
 
-private:
   std::istream* str_to_istream(const std::string &str) {
     ss_.clear();
     ss_.str(str);
     return dynamic_cast<std::istream*>(&ss_);
   }
 
+private:
   // Wrapper function for parsing files or manually inputted strings.
   void parse_config(const std::string& str, bool is_filename = false) {
     config_.Reset();
@@ -56,6 +57,7 @@ private:
   void set_config(const std::string& config) {
     parse_config(config);
   };
+
 };
 
 TEST_F(FileHandlerTest, Mime_Type_Check) {
@@ -111,13 +113,14 @@ TEST_F(FileHandlerTest, 404Handler_Check) {
 }
 
 TEST_F(FileHandlerTest, Proxy_Check) {
-  http::request<http::string_body> proxy_txt_request = make_request(proxy_txt_req);
+  config_parser_.Parse(str_to_istream("host \"http://www.example.com/\";\nport 80;"), &proxy_config_);
+  http::request<http::string_body> proxy_request = make_request(proxy_req);
 
-  RequestHandler* handler = new ProxyHandler("", config_);
+  RequestHandler* handler = new ProxyHandler("/proxy/", proxy_config_);
 
   http::response<http::string_body> response;
-  response = handler->handle_request(proxy_txt_request);
-  EXPECT_EQ(response[http::field::content_type], "text/plain");
+  response = handler->handle_request(proxy_request);
+  EXPECT_EQ(response[http::field::content_type], "text/html");
 
 }
 

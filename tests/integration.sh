@@ -19,6 +19,11 @@ location /static/ FileHandler {
 
 location /status/ StatusHandler {
 }
+
+location /proxy/ ProxyHandler {
+    host http://example.com/;
+    port 80;
+}
 " > temp_config_file
 
 #Start the server
@@ -82,6 +87,25 @@ else
     kill -9 $pid_server
     exit 1;
 fi
+
+#proxy handler test
+echo -n "Test 3:"
+curl -s http://www.example.com/ > example.html
+curl -s 127.0.0.1:80/proxy/ > test_response.html
+
+DIFF=$(diff example.html test_response.html)
+EXIT_STATUS=$?
+rm example.html
+rm test_response.html
+
+if [ "$EXIT_STATUS" -eq 0 ]; then
+    echo "SUCCESS";
+else 
+    echo "FAIL"; 
+    kill -9 $pid_server
+    exit 1;
+fi
+
 
 
 
