@@ -1,8 +1,16 @@
 #include "proxy_handler.h"
 #include "config_parser.h"
 #include <boost/log/trivial.hpp>
+#include <boost/beast/core.hpp>
+#include <boost/beast/http.hpp>
+#include <boost/beast/version.hpp>
+#include <boost/asio/connect.hpp>
+#include <boost/asio/ip/tcp.hpp>
+#include <boost/asio.hpp>
 #include <functional>
 
+namespace asio = boost::asio;
+using tcp = boost::asio::ip::tcp;
 
 ProxyHandler::ProxyHandler(const std::string& location_path, const NginxConfig& config) : RequestHandler(), prefix(location_path) {
   for (auto const& statement : config.statements_) {
@@ -35,9 +43,57 @@ ProxyHandler::ProxyHandler(const std::string& location_path, const NginxConfig& 
   assert(host != "" && port != "");
 }
 
-http::response<http::string_body> ProxyHandler::handle_request(const http::request<http::string_body>& request) {
+http::response<http::string_body> ProxyHandler::issue_outside_request(const http::request<http::string_body>& request) {
+  BOOST_LOG_TRIVIAL(trace) << "Request: " << std::endl << request << std::endl;
+  boost::asio::streambuf request_buf;
+  std::ostream oss(&request_buf);
+  oss << request;
+  asio::io_service io_service;
+  tcp::resolver resolver(io_service);
+  tcp::resolver::query query(host, port);
+  boost::beast::error_code ec;
+  auto endpoint_iterator = resolver.resolve(query, ec);
+  if (ec)
+    BOOST_LOG_TRIVIAL(error) << "Failed to resolve host " << host << std::endl;
+  tcp::socket socket(io_service);
+  BOOST_LOG_TRIVIAL(trace) << "Start connecting to redirected website..." << std::endl;
+  asio::connect(socket, endpoint_iterator);
+  BOOST_LOG_TRIVIAL(trace) << "Sending request..." << std::endl;
+  asio::write(socket, request_buf);
+  boost::asio::streambuf response_buf;
+  BOOST_LOG_TRIVIAL(trace) << "Reading response..." << std::endl;
+  asio::read_until(socket, response_buf, "\r\n");
+  std::string response_str((std::istreambuf_iterator<char>(&response_buf)),std::istreambuf_iterator<char>());
+  BOOST_LOG_TRIVIAL(trace) << "Response received: " << std::endl << response_str << std::endl;
+  http::response_parser<http::string_body> res_parser;
+  res_parser.put(asio::buffer(response_str), ec);
+  http::response<http::string_body> response = res_parser.get();
+  return response;
+}
 
-  http::response<http::string_body> response;
+http::response<http::string_body> ProxyHandler::handle_request(const http::request<http::string_body>& request) {
+  BOOST_LOG_TRIVIAL(trace) << "ProxyHandler start handling request." << std::endl;
+  http::request<http::string_body> m_request = request;
+  BOOST_LOG_TRIVIAL(trace) << "Request body: " << request.body() << std::endl;
+  BOOST_LOG_TRIVIAL(trace) << "Request version: " << request.version() << std::endl;
+  BOOST_LOG_TRIVIAL(trace) << "Request target: " << request.target() << std::endl;
+  BOOST_LOG_TRIVIAL(trace) << "Request method: " << request.method() << std::endl;
+  for (auto const& field : request)
+    BOOST_LOG_TRIVIAL(trace) << "Request field name: " << field.name() << ", value: " << field.value() << std::endl;
+  m_request.set("Host", host);
+  std::string redirect_path = (path=="/"?"":path) + std::string(request.target()).substr(prefix.length());
+  redirect_path = redirect_path == ""?"/":redirect_path;
+  m_request.target(redirect_path);
+  BOOST_LOG_TRIVIAL(trace) << "Modified request body: " << m_request.body() << std::endl;
+  BOOST_LOG_TRIVIAL(trace) << "Modified request version: " << m_request.version() << std::endl;
+  BOOST_LOG_TRIVIAL(trace) << "Modified request target: " << m_request.target() << std::endl;
+  BOOST_LOG_TRIVIAL(trace) << "Modified request method: " << m_request.method() << std::endl;
+  for (auto const& field : m_request)
+    BOOST_LOG_TRIVIAL(trace) << "Modified request field name: " << field.name() << ", value: " << field.value() << std::endl;
+  
+  
+  http::response<http::string_body> response = issue_outside_request(m_request);
+  BOOST_LOG_TRIVIAL(trace) << "Response received: " << response << std::endl;
  
   return response;
 }

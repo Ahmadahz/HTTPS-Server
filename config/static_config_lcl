@@ -41,6 +41,6 @@ location /status StatusHandler {
 }
 
 location /proxy/ ProxyHandler {
-    host http:://localhost////; #extra / will be removed during parsing
+    host http://www.cs130.org///; #extra / will be removed during parsing
     port 8080;
 }
