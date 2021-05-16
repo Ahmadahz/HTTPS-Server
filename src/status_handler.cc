@@ -20,7 +20,7 @@ http::response<http::string_body> StatusHandler::handle_request(const http::requ
     handler_info += "<tr><td>" + it->first + "</td><td>" + it->second + "</td></tr>" ;
   }
 
-  std::string display_content = "<h1>Total number of requests</h1><div>"+ std::to_string(session::request_count) +"</div>"
+  std::string display_content = "<h1>Total number of requests: "+ std::to_string(session::request_count) +"</h1>"
     "<h2>Detail Request Status</h2>"
     "<table>"
     "<tr><th>URL Requested</th><th>Return Code</th></tr>" + request_info + "</table>"

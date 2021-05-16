@@ -123,24 +123,3 @@ TEST_F(FileHandlerTest, Proxy_Check) {
   EXPECT_EQ(response[http::field::content_type], "text/html");
 
 }
-
-// TEST_F(FileHandlerTest, StatusHandler_Check) {
-//   http::request<http::string_body> status_request = make_request(status_req);
-//   RequestHandler* handler = new StatusHandler("", config_);
-
-//   http::response<http::string_body> response;
-//   response = handler->handle_request(status_request);
-//   std::string response_body(response.body().data(), response.body().size());
-//   EXPECT_EQ(response_body, response_body);
-// }
-// <h1>Total number of requests</h1>
-// <div>0</div>
-// <h2>Detail Request Status</h2>
-// <table>
-// <tbody>
-// <tr><th>URL Requested</th><th>Return Code</th></tr>
-// </tr></tbody>
-// </table>
-// <h2>Request Handlers</h2>
-// <table><tbody><tr><th>URL Prefix</th><th>Handler</th></tr>
-// </tr></tbody></table>

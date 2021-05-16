@@ -57,19 +57,6 @@ else
     exit 1;
 fi
 
-# curl -i -s 127.0.0.1:80/status > status_out
-
-# DIFF=$(diff status_out test_status)
-# EXIT_STATUS=$?
-
-# if [ "$EXIT_STATUS" -eq 0 ]; then
-#     echo "SUCCESS";
-# else 
-#     echo "FAIL"; 
-#     kill -9 $pid_server
-#     exit 1;
-# fi
-
 #Test should not return without \r\n\r\n at the end
 #Wait for 1s timeout then check
 response2=$(printf '%s\r\n%s\r\n%s\r\n'  \
@@ -107,7 +94,7 @@ else
 fi
 
 
-
+sleep 1
 
 kill -9 $pid_server
 exit 0
