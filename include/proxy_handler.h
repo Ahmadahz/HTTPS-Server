@@ -12,6 +12,7 @@ public:
 private:
   http::response<http::string_body> handle_request(const http::request<http::string_body>& request) override;
 
+  std::string prefix;
   std::string host;
   std::string port;
 };

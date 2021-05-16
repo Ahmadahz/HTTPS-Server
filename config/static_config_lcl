@@ -41,6 +41,6 @@ location /status StatusHandler {
 }
 
 location /proxy/ ProxyHandler {
-    host http://localhost/
-    port 8080
+    host http:://localhost////; #extra / will be removed during parsing
+    port 8080;
 }

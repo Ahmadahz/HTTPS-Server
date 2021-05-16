@@ -9,6 +9,7 @@
 #include "echo_handler.h"
 #include "404_handler.h"
 #include "status_handler.h"
+#include "proxy_handler.h"
 
 
 /*
@@ -122,6 +123,10 @@ bool Dispatcher::add_handler(const NginxConfig& config, std::string path, std::s
   else if (handler_type == "StatusHandler") {
     handlers_[path] = new StatusHandler(path, config);
     handler_info[path] = "StatusHandler";
+  }
+  else if (handler_type == "ProxyHandler") {
+    handlers_[path] = new ProxyHandler(path, config);
+    handler_info[path] = "ProxyHandler";
   }
   else {
     BOOST_LOG_TRIVIAL(trace) << "In Dispatcher::add_handler: Handlertype couldn't be found";
