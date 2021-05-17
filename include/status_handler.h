@@ -13,7 +13,8 @@ public:
   StatusHandler(const std::string& location_path, const NginxConfig& config);
 private:
   http::response<http::string_body> handle_request(const http::request<http::string_body>& request) override;
-  
+  std::map<std::string, int> condense();
+  const std::vector<std::string> split(const std::string& s, const char& c);
 };
 
 #endif
