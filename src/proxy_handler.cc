@@ -1,137 +1,118 @@
 #include "proxy_handler.h"
 #include "config_parser.h"
+
+//boost lib
 #include <boost/log/trivial.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
 #include <boost/asio/connect.hpp>
 #include <boost/asio/ip/tcp.hpp>
-#include <boost/asio.hpp>
+
+//stb lib
 #include <functional>
-
+#include <tuple>
+#include <string>
 #include <iostream>       // std::cout, std::endl
-#include <thread>         // std::this_thread::sleep_for
-#include <chrono>
 
-namespace beast = boost::beast;
-namespace http = beast::http;
-namespace net = boost::asio;
-using tcp = net::ip::tcp;
 
-ProxyHandler::ProxyHandler(const std::string& location_path, const NginxConfig& config) : RequestHandler(), prefix(location_path) {
-  for (auto const& statement : config.statements_) {
-    if (statement->tokens_[0] == "host" && statement->tokens_.size() == 2) {
-      std::function<std::string(std::string const&)> remove_end_slash = [&remove_end_slash](std::string const& s) {
-          if(s[s.length() - 1] == '/') return remove_end_slash(s.substr(0, s.length()-1));
-          else return s;
-        };
-      auto modified_url = remove_end_slash(statement->tokens_[1]);
-      auto host_start = modified_url.find("//");
-      if (host_start == std::string::npos) {
-        BOOST_LOG_TRIVIAL(error) << "The ProxyHandler config did not specify protocol or host." << std::endl;
-      }
-      else {
-        auto pos_after_protocol = host_start + 2;
-        auto pos_after_host = modified_url.find("/", pos_after_protocol);
-        host = modified_url.substr(pos_after_protocol, pos_after_host-pos_after_protocol);
-        path = pos_after_host!=std::string::npos ? modified_url.substr(pos_after_host) : "/";
-      }
+using tcp = boost::asio::ip::tcp;
+
+/*
+Extract protocol, host, and path from a given url.
+For example, if url is "http://www.example.com/index.html", return value will be 
+{"http", "www.example.com", "index.html"}
+*/
+std::tuple<std::string, std::string, std::string> parse_url(std::string const& url) {
+    std::function<std::string(std::string const&)> remove_end_slash = [&remove_end_slash](std::string const& s) {
+        if (s[s.length() - 1] == '/') return remove_end_slash(s.substr(0, s.length() - 1));
+        else return s;
+    };
+
+    std::string modified_url = remove_end_slash(url);
+    size_t host_start = modified_url.find("://");
+    if (host_start == std::string::npos) {
+        return {"", "", ""};
     }
-    else if (statement->tokens_[0] == "port" && statement->tokens_.size() == 2) {
-      port = statement->tokens_[1];
+    else {
+        size_t pos_after_protocol = host_start + 3;
+        size_t pos_after_host = modified_url.find("/", pos_after_protocol);
+        std::string protocol = modified_url.substr(0, host_start);
+        std::string host = modified_url.substr(pos_after_protocol, pos_after_host - pos_after_protocol);
+        std::string path = pos_after_host != std::string::npos ? modified_url.substr(pos_after_host) : "/";
+        return { protocol, host, path };
     }
-  }
-
-  BOOST_LOG_TRIVIAL(trace) << "The ProxyHandler prefix is: " << prefix << std::endl;
-  BOOST_LOG_TRIVIAL(trace) << "The ProxyHandler host is: " << host << std::endl;
-  BOOST_LOG_TRIVIAL(trace) << "The ProxyHandler path is: " << path << std::endl;
-  BOOST_LOG_TRIVIAL(trace) << "The ProxyHandler port is: " << port << std::endl;
-  assert(host != "" && port != "");
 }
 
-http::response<http::string_body> ProxyHandler::issue_outside_request(const http::request<http::string_body>& request) {
-  BOOST_LOG_TRIVIAL(trace) << "Request: " << std::endl << request << std::endl;
-  //This method does not work. It can read only 512 bytes. Reasons not yet found.
-//  boost::asio::streambuf request_buf(10*1024);
-//  std::ostream oss(&request_buf);
-//  oss << request;
-//  asio::io_service io_service;
-//  tcp::resolver resolver(io_service);
-//  tcp::resolver::query query(host, port);
-//  boost::beast::error_code ec;
-//  auto endpoint_iterator = resolver.resolve(query, ec);
-//  if (ec)
-//    BOOST_LOG_TRIVIAL(error) << "Failed to resolve host " << host << std::endl;
-//  tcp::socket socket(io_service);
-//  BOOST_LOG_TRIVIAL(trace) << "Start connecting to redirected website..." << std::endl;
-//  asio::connect(socket, endpoint_iterator);
-//  BOOST_LOG_TRIVIAL(trace) << "Sending request..." << std::endl;
-//  asio::write(socket, request_buf);
-//  boost::asio::streambuf response_buf(10*1024);
-//  BOOST_LOG_TRIVIAL(trace) << "Reading response..." << std::endl;
-//  asio::read_until(socket, response_buf, "\r\n");
-//  std::string response_str, response_str2, response_str3;
-//  std::istream response_stream(&response_buf);
-//  std::string response_str{buffers_begin(response_buf.data()), buffers_end(response_buf.data())};
-//  std::cout << "Response length: " << response_str.length() << std::endl;
-//  std::cout << "Response buffer length: " << response_buf.size() << std::endl;
-//  //((std::istreambuf_iterator<char>(&response_buf)),std::istreambuf_iterator<char>());
-//  std::cout << "Response received: " << std::endl << response_str << std::endl;
-//  http::response_parser<http::string_body> res_parser;
-//  res_parser.put(response_buf.data(), ec);
-//  http::response<http::string_body> response = res_parser.get();
-  
-  // This one is modified from boost official website
-  http::response<http::string_body> response;
-  try {
-  net::io_context ioc;
-  tcp::resolver resolver(ioc);
-  boost::beast::tcp_stream stream(ioc);
-  auto const results = resolver.resolve(host, port);
-  stream.connect(results);
-  http::request<http::string_body> req{http::verb::get, request.target(), request.version()};
-  http::write(stream, request);
-  beast::flat_buffer buffer;
-  http::read(stream, buffer, response);
-  beast::error_code ec;
-  stream.socket().shutdown(tcp::socket::shutdown_both, ec);
-  if(ec && ec != beast::errc::not_connected)
-      throw beast::system_error{ec};
-  } catch(std::exception const& e)
-  {
-    BOOST_LOG_TRIVIAL(error) << "Error: " << e.what() << std::endl;
-  }
-  return response;
+ProxyHandler::ProxyHandler(const std::string& location_path, const NginxConfig& config) : RequestHandler(), prefix(location_path) {
+    for (auto const& statement : config.statements_) {
+        if (statement->tokens_[0] == "host" && statement->tokens_.size() == 2) {
+            auto url_components = parse_url(statement->tokens_[1]);
+            if(std::get<0>(url_components) != "http") {
+              BOOST_LOG_TRIVIAL(error) << "Unspecified or unsupported network protocol\n";
+              throw std::runtime_error("bad config file\n");
+            }
+            else {
+              host = std::get<1>(url_components);
+              path = std::get<2>(url_components);
+            }
+        }
+        else if (statement->tokens_[0] == "port" && statement->tokens_.size() == 2) {
+            port = statement->tokens_[1];
+        }
+    }
+
+    BOOST_LOG_TRIVIAL(trace) << "The ProxyHandler prefix is: " << prefix << std::endl;
+    BOOST_LOG_TRIVIAL(trace) << "The ProxyHandler host is: " << host << std::endl;
+    BOOST_LOG_TRIVIAL(trace) << "The ProxyHandler path is: " << path << std::endl;
+    BOOST_LOG_TRIVIAL(trace) << "The ProxyHandler port is: " << port << std::endl;
+}
+
+http::response<http::string_body> issue_outside_request(std::string const& host, std::string const& port, std::string const& target) {
+    // This one is modified from boost official website
+    http::response<http::string_body> response;
+    try {
+        boost::asio::io_context ioc;
+        tcp::resolver resolver(ioc);
+        boost::beast::tcp_stream stream(ioc);
+        auto const results = resolver.resolve(host, port);
+        stream.connect(results);
+        http::request<http::string_body> req{ http::verb::get, target, 11 };
+        req.set(http::field::host, host);
+        http::write(stream, req);
+        boost::beast::flat_buffer buffer;
+        http::read(stream, buffer, response);
+        boost::beast::error_code ec;
+        stream.socket().shutdown(tcp::socket::shutdown_both, ec);
+        if (ec && ec != boost::beast::errc::not_connected)
+            throw boost::beast::system_error{ ec };
+    }
+    catch (std::exception const& e)
+    {
+        BOOST_LOG_TRIVIAL(error) << "Error: " << e.what() << std::endl;
+    }
+
+    if (http::to_status_class(response.result()) == http::status_class::redirection) {
+      BOOST_LOG_TRIVIAL(trace) << "Redirection found\n";
+      std::string redirected_url = std::string(response[http::field::location].data(), response[http::field::location].size());
+      auto url_components = parse_url(redirected_url);
+      if(std::get<0>(url_components) != "http") return response;
+      else return issue_outside_request(std::get<1>(url_components), "80", std::get<2>(url_components));
+    }
+    else return response;
 }
 
 http::response<http::string_body> ProxyHandler::handle_request(const http::request<http::string_body>& request) {
-  BOOST_LOG_TRIVIAL(trace) << "ProxyHandler start handling request." << std::endl;
-  http::request<http::string_body> m_request = request;
-  BOOST_LOG_TRIVIAL(trace) << "Request body: " << request.body() << std::endl;
-  BOOST_LOG_TRIVIAL(trace) << "Request version: " << request.version() << std::endl;
-  BOOST_LOG_TRIVIAL(trace) << "Request target: " << request.target() << std::endl;
-  BOOST_LOG_TRIVIAL(trace) << "Request method: " << request.method() << std::endl;
-  for (auto const& field : request)
-    BOOST_LOG_TRIVIAL(trace) << "Request field name: " << field.name() << ", value: " << field.value() << std::endl;
-  m_request.set("Host", host);
-  m_request.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
-  std::string redirect_path = (path=="/"?"":path) + std::string(request.target()).substr(prefix.length());
-  redirect_path = redirect_path == ""?"/":redirect_path;
-  m_request.target(redirect_path);
-  BOOST_LOG_TRIVIAL(trace) << "Modified request body: " << m_request.body() << std::endl;
-  BOOST_LOG_TRIVIAL(trace) << "Modified request version: " << m_request.version() << std::endl;
-  BOOST_LOG_TRIVIAL(trace) << "Modified request target: " << m_request.target() << std::endl;
-  BOOST_LOG_TRIVIAL(trace) << "Modified request method: " << m_request.method() << std::endl;
-  for (auto const& field : m_request)
-    BOOST_LOG_TRIVIAL(trace) << "Modified request field name: " << field.name() << ", value: " << field.value() << std::endl;
-  
-  http::response<http::string_body> response = issue_outside_request(m_request);
-  
-  BOOST_LOG_TRIVIAL(trace) << "Response general: " << response << std::endl;
-  for (auto const& field : response)
-  BOOST_LOG_TRIVIAL(trace) << "Response field name: " << field.name() << ", value: " << field.value() << std::endl;
-
-  // What are the possible modifications to the response?
- 
-  return response;
+    std::string target = std::string(request.target().data(), request.target().size()).substr(prefix.length());
+    if (target == "") target = "/";
+    auto response = issue_outside_request(host, port, target);
+    std::string content_type = std::string(response[http::field::content_type].data(), response[http::field::content_type].size());
+    size_t content_type_loc = content_type.find(";");
+    if (content_type_loc != std::string::npos) {
+      response.set(http::field::content_type, content_type.substr(0, content_type_loc));
+    }
+    
+    return response;
 }
+
+

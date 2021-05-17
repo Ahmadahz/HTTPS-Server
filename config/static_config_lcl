@@ -41,6 +41,6 @@ location /status StatusHandler {
 }
 
 location /proxy/ ProxyHandler {
-    host http://www.nyu.edu//; #extra / will be removed during parsing
+    host http://www.example.com/; #extra / will be removed during parsing
     port 80;
 }

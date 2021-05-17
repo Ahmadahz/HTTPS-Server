@@ -114,13 +114,13 @@ TEST_F(FileHandlerTest, 404Handler_Check) {
 
 //Commented out test For now because it's failing
 TEST_F(FileHandlerTest, Proxy_Check) {
-  config_parser_.Parse(str_to_istream("host \"http://www.example.com/\";\nport 80;"), &proxy_config_);
-  http::request<http::string_body> proxy_request = make_request(proxy_req);
+  config_parser_.Parse(str_to_istream("host http://www.example.com/;port 80;"), &proxy_config_);
 
+  http::request<http::string_body> proxy_request = make_request(proxy_req);
+  
   RequestHandler* handler = new ProxyHandler("/proxy/", proxy_config_);
 
-  http::response<http::string_body> response;
-  response = handler->handle_request(proxy_request);
+  http::response<http::string_body> response = handler->handle_request(proxy_request);
   EXPECT_EQ(response[http::field::content_type], "text/html");
 
 }

@@ -86,9 +86,9 @@ rm example.html
 rm test_response.html
 
 if [ "$EXIT_STATUS" -eq 0 ]; then
-    echo "SUCCESS";
+    echo "Proxy Test SUCCESS";
 else 
-    echo "FAIL"; 
+    echo "Proxy Test FAIL"; 
     kill -9 $pid_server
     exit 1;
 fi
