@@ -1,4 +1,4 @@
-listen 8080;
+listen 80;
 
 location /static/ FileHandler {
     root /bar;

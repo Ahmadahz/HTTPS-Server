@@ -19,7 +19,7 @@ FROM ubuntu:focal as deploy
 # TODO(ahmadhz): Copy server output binary to "."
 COPY --from=builder /usr/src/project/build/bin/server .
 # Copy configuration file output to "." (Was required from the instructions)
-COPY --from=builder /usr/src/project/config/static_config .
+COPY --from=builder /usr/src/project/config/static_config_lcl .
 #Copy static data files
 COPY --from=builder /usr/src/project/files .
 # TODO(ahmadhz): Expose some port(s)
@@ -35,4 +35,4 @@ ENTRYPOINT ["./server"]
 # TODO(ahmadhz): Update with real server args
 # Note: The argument can be overwritten
 # Note: We can add more arguments later
-CMD ["static_config"]
+CMD ["static_config_lcl"]
