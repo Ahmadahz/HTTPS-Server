@@ -38,8 +38,8 @@ include_directories(include)
 add_library(session_lib src/session.cc)
 add_library(server_lib src/server.cc)
 add_library(config_parser src/config_parser.cc)
-add_library(request_handler src/echo_handler.cc src/file_handler.cc src/404_handler.cc src/status_handler.cc src/proxy_handler.cc src/logger.cc)
-add_library(dispatcher src/dispatcher.cc src/echo_handler.cc src/file_handler.cc src/config_parser.cc src/404_handler.cc src/status_handler.cc src/proxy_handler.cc)
+add_library(request_handler src/echo_handler.cc src/file_handler.cc src/404_handler.cc src/status_handler.cc src/proxy_handler.cc src/sleep_handler.cc src/logger.cc)
+add_library(dispatcher src/dispatcher.cc src/echo_handler.cc src/file_handler.cc src/config_parser.cc src/404_handler.cc src/status_handler.cc src/proxy_handler.cc src/sleep_handler.cc)
 add_library(logger src/logger.cc)
 
 # RESOLVED: Update executable name, srcs, and deps
@@ -69,6 +69,7 @@ gtest_discover_tests(file_handler_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_
 gtest_discover_tests(dispatcher_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 add_test(NAME integration_test COMMAND ${BASH_PROGRAM} ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration.sh)
 add_test(NAME status_test COMMAND ${BASH_PROGRAM} ${CMAKE_CURRENT_SOURCE_DIR}/tests/status_test.sh)
+add_test(NAME multithreading_test COMMAND ${BASH_PROGRAM} ${CMAKE_CURRENT_SOURCE_DIR}/tests/multithread_test.sh)
 
 # RESOLVED: Update with target/test targets
 include(cmake/CodeCoverageReportConfig.cmake)

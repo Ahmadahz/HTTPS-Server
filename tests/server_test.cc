@@ -39,7 +39,7 @@ TEST_F(ServerTest, HandleAcceptSuccess) {
   session* test_session = create_session();
   server test_server(*test_session, io_service0, 8080, out_config_);
   test_server.handle_accept(test_session, err);
-  delete test_session;
+  //delete test_session;
 }
 
 TEST_F(ServerTest, HandleAcceptFailure) {

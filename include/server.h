@@ -27,6 +27,7 @@ public:
   Dispatcher* get_dispatcher() const;
 private:
   void start_accept();
+  
   /* Overload allows for easier unit testing. */
   void start_accept(session* new_session);
  

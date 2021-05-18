@@ -29,9 +29,6 @@ TEST_F(SessionTest, DeleteCloseOnWriteTest) {
   request = "GET Request\r\n";
   test_session.fill_data_with(request);
   test_session.handle_write(success_code);
-  
-  char expected2[1] = "";
-  EXPECT_STREQ(test_session.get_data(), expected2);
 }
 
 TEST_F(SessionTest, HandleReadError) {

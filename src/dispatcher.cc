@@ -10,7 +10,7 @@
 #include "404_handler.h"
 #include "status_handler.h"
 #include "proxy_handler.h"
-
+#include "sleep_handler.h"
 
 /*
   Constructor - Constructs a RequestHandler Set. After the constructor has
@@ -127,6 +127,10 @@ bool Dispatcher::add_handler(const NginxConfig& config, std::string path, std::s
   else if (handler_type == "ProxyHandler") {
     handlers_[path] = new ProxyHandler(path, config);
     handler_info[path] = "ProxyHandler";
+  }
+  else if (handler_type == "SleepHandler") {
+    handlers_[path] = new SleepHandler(path, config);
+    handler_info[path] = "SleepHandler";
   }
   else {
     BOOST_LOG_TRIVIAL(trace) << "In Dispatcher::add_handler: Handlertype couldn't be found";

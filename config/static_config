@@ -39,3 +39,7 @@ location /echo/ EchoHandler {
 location /status StatusHandler {
     
 }
+
+location /sleep SleepHandler {
+    
+}

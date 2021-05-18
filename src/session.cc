@@ -119,11 +119,10 @@ void session::handle_write(const boost::system::error_code& error)
     
     memset(data_, '\0', sizeof(data_));
     
-	/*
     BOOST_LOG_TRIVIAL(trace)
-      << "Closing socket of IP: "
-      << socket_.remote_endpoint().address().to_string();
-    */
+      << "Response sent, closing socket.";
+      // << socket_.remote_endpoint().address().to_string();
+    
     socket_.close();
   }
   else {
