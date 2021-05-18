@@ -40,6 +40,10 @@ location /status StatusHandler {
     
 }
 
+location /sleep/ SleepHandler {
+
+}
+
 location /proxy/ ProxyHandler {
     host http://www.example.com/; #extra / will be removed during parsing
     port 80;
