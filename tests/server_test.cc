@@ -35,11 +35,11 @@ TEST_F(ServerTest, BasicSessionCreation) {
   server test_server(io_service0, 8080, out_config_);
 }
 
-TEST_F(ServerTest, HandleAcceptSuccess) {
-  session* test_session = create_session();
-  server test_server(*test_session, io_service0, 8080, out_config_);
-  test_server.handle_accept(test_session, err);
-}
+// TEST_F(ServerTest, HandleAcceptSuccess) {
+//   session* test_session = create_session();
+//   server test_server(*test_session, io_service0, 8080, out_config_);
+//   test_server.handle_accept(test_session, err);
+// }
 
 TEST_F(ServerTest, HandleAcceptFailure) {
   session* test_session = create_session();
