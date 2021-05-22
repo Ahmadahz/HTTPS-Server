@@ -31,6 +31,7 @@ private:
   bool end_of_request() const;
   void append_data();
   void send_response();
+  std::string get_handler_name(const std::string& uri) const;
 
   Dispatcher* dispatcher_;
   tcp::socket socket_;

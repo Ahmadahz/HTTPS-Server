@@ -50,8 +50,7 @@ RequestHandler* Dispatcher::get_request_handler(const std::string& uri) const {
       }
     }
   }
-  BOOST_LOG_TRIVIAL(trace) << "In Dispatcher::get_request_handler: handler with prefix found: " << prefix;
-  
+  BOOST_LOG_TRIVIAL(trace) << "In Dispatcher::get_request_handler: handler with prefix found: " << prefix;  
   return handler;
 }
 

@@ -45,6 +45,31 @@ void session::append_data() {
 	boost::asio::placeholders::bytes_transferred));
 }
 
+/*
+  Iterate through stored handlers in dispatcher to get the 
+  name of the handler servicing a given uri
+*/
+std::string session::get_handler_name(const std::string& uri) const {
+  std::string path = uri;
+  std::string handler_name;
+  // Remove slashes at end of path
+  while (path.length() > 1 && path.back() == '/') {
+    path.pop_back();
+  }
+
+  std::string prefix;
+  // Match longest prefix and corresponding handler
+  for (auto it = Dispatcher::handler_info.begin(); it != Dispatcher::handler_info.end(); it++) {
+    if (path.substr(0, it->first.length()) == it->first) {
+      if (it->first.length() > prefix.length()) {
+        prefix = it->first;
+        handler_name = it->second;
+      }
+    }
+  }
+  return handler_name;
+}
+
 void session::send_response() {
   BOOST_LOG_TRIVIAL(trace) << "In session::send_response: In send_response.\n";
   
@@ -61,8 +86,6 @@ void session::send_response() {
   http::request<http::string_body> req = parser.get();
 
   std::string uri(req.target().data(), req.target().size());
-
-  BOOST_LOG_TRIVIAL(trace) << "Request target: " << uri;
   
   RequestHandler* handler = dispatcher_->get_request_handler(uri);
   if (handler) {
@@ -72,6 +95,10 @@ void session::send_response() {
     request_count++;
     handled_requests[uri].push_back(buffer_.result_int());
     BOOST_LOG_TRIVIAL(trace) << "Body of response: " << buffer_.body();
+    std::string handler_name = get_handler_name(uri);
+    std::string request_ip = socket_.remote_endpoint().address().to_string();
+    BOOST_LOG_TRIVIAL(trace) << "[ResponseMetrics] request_ip:" << request_ip << " request_path:" << uri 
+      << " matched_handler:" << handler_name <<  " response_code:" << buffer_.result_int() << std::endl;
 
     http::async_write(socket_, buffer_,
       boost::bind(&session::handle_write, this,
