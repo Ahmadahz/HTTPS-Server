@@ -31,4 +31,4 @@ steps:
     '.'
   ]
 images: ['gcr.io/$PROJECT_ID/lark:base', 'gcr.io/$PROJECT_ID/lark:latest']
-timeout: 660s
+timeout: 900s
