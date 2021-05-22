@@ -27,6 +27,7 @@ server::server(session& new_session, boost::asio::io_service& io_service, short 
   : io_service_(io_service),
     acceptor_(io_service, tcp::endpoint(tcp::v4(), port)) {
   dispatcher_ = new Dispatcher(config);
+  logger_ = new Logger();
   start_accept(&new_session);
 }
 
