@@ -11,6 +11,7 @@
 #include "status_handler.h"
 #include "proxy_handler.h"
 #include "sleep_handler.h"
+#include "health_handler.h"
 
 /*
   Constructor - Constructs a RequestHandler Set. After the constructor has
@@ -131,6 +132,10 @@ bool Dispatcher::add_handler(const NginxConfig& config, std::string path, std::s
   else if (handler_type == "SleepHandler") {
     handlers_[path] = new SleepHandler(path, config);
     handler_info[path] = "SleepHandler";
+  }
+  else if (handler_type == "HealthHandler") {
+    handlers_[path] = new HealthHandler(path, config);
+    handler_info[path] = "HealthHandler";
   }
   else {
     BOOST_LOG_TRIVIAL(trace) << "In Dispatcher::add_handler: Handlertype couldn't be found";

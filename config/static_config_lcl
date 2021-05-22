@@ -48,3 +48,7 @@ location /proxy/ ProxyHandler {
     host http://www.example.com/; #extra / will be removed during parsing
     port 80;
 }
+
+location /health/ HealthHandler {
+
+}
