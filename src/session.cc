@@ -79,8 +79,16 @@ void session::send_response() {
   parser.put(boost::asio::buffer(data_, strlen(data_)), ec);
 
   if (ec) {
-    BOOST_LOG_TRIVIAL(error) << "Error parsing the client HTTP request.";
-    return;
+    BOOST_LOG_TRIVIAL(error) << "Error 400: The format for HTTP request is wrong.";
+	http::response<http::string_body> response;
+	response.result(400);
+	response.body() = "<h1>400 Bad Request</h1>";
+	response.prepare_payload();
+	buffer_ = response;
+	http::async_write(socket_, buffer_,
+      boost::bind(&session::handle_write, this,
+                  boost::asio::placeholders::error));
+	return;
   }
   
   http::request<http::string_body> req = parser.get();

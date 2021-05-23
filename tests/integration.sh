@@ -32,19 +32,33 @@ pid_server=$!
 echo $pid_server
 
 sleep 1
-#Checks if server correctly echos 'hell' message
-#Expect Success
+
+#Checks if the server handles wrong requests
 response=$(printf '%s\r\n%s\r\n%s\r\n\r\n'            \
-			    "GET /echo/hell HTTP/1.1"         \
+			    "GET HTTP/1.1"                        \
 			   "Host: www.test.com"                   \
                "Connection: close"                    \
                | nc 127.0.0.1 80)
 
-echo $response > echo_test
-
-curl -i -s 127.0.0.1:80/echo/hell > test_response
+echo $response > ../tests/echo_test_400
 
 echo -n "Test 1:"
+
+DIFF=$(diff ../tests/expected_echo_400 ../tests/echo_test_400)
+EXIT_STATUS=$?
+
+if [ "$EXIT_STATUS" -eq 0 ]; then
+    echo "SUCCESS";
+else 
+    echo "FAIL"; 
+    kill -9 $pid_server
+    exit 1;
+fi
+
+#Checks if server correctly echos 'hell' message
+curl -i -s 127.0.0.1:80/echo/hell > test_response
+
+echo -n "Test 2:"
 
 DIFF=$(diff ../tests/expected_echo1 test_response)
 EXIT_STATUS=$?
@@ -66,7 +80,7 @@ response2=$(printf '%s\r\n%s\r\n%s\r\n'  \
     | nc 127.0.0.1 80) &
 pid=$!
 sleep 1 && kill -9 $pid
-echo -n "Test 2:"
+echo -n "Test 3:"
 if [ "$response2" = "" ]; then 
     echo "SUCCESS"; 
 else 
@@ -76,7 +90,7 @@ else
 fi
 
 #proxy handler test
-echo -n "Test 3:"
+echo -n "Test 4:"
 curl -s http://www.example.com/ > example.html
 curl -s 127.0.0.1:80/proxy/ > test_response.html
 
