@@ -340,7 +340,7 @@ bool NginxConfigParser::Parse(const char* file_name, NginxConfig* config) {
   return return_value;
 }
 
-bool NginxConfigParser::GetPortNumber(const NginxConfig& out_config, short& port_number) {
+bool NginxConfigParser::GetPortNumber(const NginxConfig& out_config, const std::string& port_type, short& port_number) {
   std::vector<std::shared_ptr<NginxConfigStatement>> statements;
   statements = out_config.statements_;
 
@@ -357,10 +357,23 @@ bool NginxConfigParser::GetPortNumber(const NginxConfig& out_config, short& port
     // The token size check is to ensure that the config file is properly formed
     // in a way that the config parser doesn't currently check for.
     std::string port_statement = statements[i]->ToString(0);
-    size_t port_pos = port_statement.find("listen");
-
+	size_t port_pos;
+	if (port_type == "HTTP") {
+      port_pos = port_statement.find("listen");
+	}
+	if (port_type == "HTTPS") {
+      port_pos = port_statement.find("ssl-port");
+	}
+	
     if (port_pos != std::string::npos) {
-      port_pos += 6; // Go to position after the end of "listen"
+		
+	  if (port_type == "HTTP") {
+	    port_pos += 6; // Go to position after the end of "listen"
+	  }
+	  
+	  if (port_type == "HTTPS") {
+	    port_pos += 8; // Go to position after the end of "SSL"
+	  } 
 
       // Ignore whitespace after "listen" is found in search of start and end
       // positions of the port number.
@@ -392,10 +405,54 @@ bool NginxConfigParser::GetPortNumber(const NginxConfig& out_config, short& port
 
       return true;
     }
-    else {
-      BOOST_LOG_TRIVIAL(trace) << "\"listen\" token not found." << std::endl;
-      return false;
-    }
   }
+  BOOST_LOG_TRIVIAL(trace) << "Port number could not be found." << std::endl;
   return false;
 }
+
+
+bool NginxConfigParser::GetKeyPath(const NginxConfig& out_config) {
+  std::vector<std::shared_ptr<NginxConfigStatement>> statements;
+  statements = out_config.statements_;
+
+  //Find the path to the private and public keys
+  for (int i = 0; i < statements.size(); ++i) {
+    std::string key_statement = statements[i]->ToString(0);
+    size_t private_key_pos = key_statement.find("private_key_root");
+    size_t public_key_pos = key_statement.find("public_key_root");
+	
+	if (private_key_pos != std::string::npos) {
+		private_key_pos += 16;
+		size_t priv_start_pos = key_statement.find_first_not_of(" \t\n\r", private_key_pos);
+        size_t priv_end_pos = key_statement.find_first_of(" \t;",priv_start_pos);
+		ssl_private_path = key_statement.substr(priv_start_pos,
+          priv_end_pos - priv_start_pos);
+	}
+	if (public_key_pos != std::string::npos) {
+		public_key_pos += 15;
+		size_t pub_start_pos = key_statement.find_first_not_of(" \t\n\r", public_key_pos);
+        size_t pub_end_pos = key_statement.find_first_of(" \t;",pub_start_pos);
+		ssl_public_path = key_statement.substr(pub_start_pos,
+          pub_end_pos - pub_start_pos);
+	}
+  }
+
+  if (ssl_public_path.empty() || ssl_private_path.empty()) {
+	BOOST_LOG_TRIVIAL(trace) << "SSL Path not found." << std::endl;
+    return false;  
+  }
+
+  return true;
+}
+
+
+std::string NginxConfigParser::GetSSLPrivateKeyPath() {
+  return ssl_private_path;
+}
+
+std::string NginxConfigParser::GetSSLPublicKeyPath() {
+  return ssl_public_path;
+}
+
+
+

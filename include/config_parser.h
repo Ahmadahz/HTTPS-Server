@@ -40,8 +40,13 @@ class NginxConfigParser {
 
   // Accepts a valid NginxConfig object and stores the found HTTP port number
   // in out-param port_number. Returns true if a valid port number was found.
-  bool GetPortNumber(const NginxConfig& out_config, short& port_number);
-
+  bool GetPortNumber(const NginxConfig& out_config, const std::string& port_type, short& port_number);
+  bool GetKeyPath(const NginxConfig& out_config);
+  std::string GetSSLPrivateKeyPath();
+  std::string GetSSLPublicKeyPath();
+  std::string ssl_private_path;
+  std::string ssl_public_path;
+  
  private:
   enum TokenType {
     TOKEN_TYPE_START = 0,

@@ -106,7 +106,7 @@ protected:
   // Wrapper function for getting port numbers.
   // parse() or equivalent should have already been called prior to this.
   bool port_number() {
-    return parser_.GetPortNumber(out_config_, port_number_);
+    return parser_.GetPortNumber(out_config_, "HTTP", port_number_);
   }
 };
 

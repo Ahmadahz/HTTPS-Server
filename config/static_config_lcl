@@ -1,5 +1,10 @@
 listen 80;
 
+ssl-port 70;
+private_key_root tests/keys/ssl_key.key;
+public_key_root tests/keys/ssl_cert.pem;
+
+
 location /static/ FileHandler {
     root /bar;
 }

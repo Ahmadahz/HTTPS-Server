@@ -33,7 +33,15 @@ int main(int argc, char* argv[]) {
 
     if (parser.Parse(argv[1], &out_config)) {
       short port_number;
-      if (parser.GetPortNumber(out_config, port_number)) {
+	  short ssl_port_number;
+      if (parser.GetPortNumber(out_config, "HTTP", port_number)) {
+		  
+		     
+		if (parser.GetPortNumber(out_config, "HTTPS", ssl_port_number) && parser.GetKeyPath(out_config))  {
+			BOOST_LOG_TRIVIAL(trace) << "Created server listening  on SSL port: " << ssl_port_number;
+			BOOST_LOG_TRIVIAL(trace) << "Private path SSL: " << parser.GetSSLPrivateKeyPath();
+			BOOST_LOG_TRIVIAL(trace) << "Public path SSL: " << parser.GetSSLPublicKeyPath();
+		}
         BOOST_LOG_TRIVIAL(trace) << "Created server listening on port: " << port_number;
         
         server s(io_service, port_number, out_config);
