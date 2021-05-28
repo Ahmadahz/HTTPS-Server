@@ -32,6 +32,10 @@ set(Boost_USE_STATIC_LIBS ON)
 find_package(Boost 1.50 REQUIRED COMPONENTS system thread log_setup log)
 message(STATUS "Boost version: ${Boost_VERSION}")
 
+#Enable OpenSSL for boost:ssl extension
+find_package(OpenSSL REQUIRED)
+message(STATUS "OpenSSL version: ${Openssl_VERSION}")
+
 include_directories(include)
 
 # RESOLVED: Update name and srcs
@@ -42,7 +46,14 @@ add_library(request_handler src/echo_handler.cc src/file_handler.cc src/404_hand
 add_library(dispatcher src/dispatcher.cc src/echo_handler.cc src/file_handler.cc src/config_parser.cc src/404_handler.cc src/status_handler.cc src/proxy_handler.cc src/sleep_handler.cc src/health_handler.cc)
 add_library(logger src/logger.cc)
 
-# RESOLVED: Update executable name, srcs, and deps
+# RESOLVED: Update executable name, srcs, and 
+add_executable(http_server src/http_server_main.cc)
+target_link_libraries(http_server Boost::system Boost::thread Boost::log_setup Boost::log)
+add_executable(https_server src/boost_https_server_main.cc)
+target_link_libraries(https_server Boost::system Boost::thread Boost::log_setup Boost::log OpenSSL::SSL OpenSSL::Crypto)
+add_executable(https_client src/boost_https_client_main.cc)
+target_link_libraries(https_client Boost::system Boost::thread Boost::log_setup Boost::log OpenSSL::SSL OpenSSL::Crypto)
+
 add_executable(server src/server_main.cc)
 target_link_libraries(server server_lib session_lib request_handler dispatcher logger Boost::system Boost::thread Boost::log_setup Boost::log)
 add_executable(config_parser_main src/config_parser_main.cc)
