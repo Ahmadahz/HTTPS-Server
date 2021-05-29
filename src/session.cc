@@ -4,28 +4,66 @@
 #include <boost/asio.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/beast/http.hpp>
+#include <boost/asio/ssl.hpp>
 
 #include "session.h"
 
 using boost::asio::ip::tcp;
 namespace http = boost::beast::http;
+// typedef boost::asio::ssl::stream<boost::asio::ip::tcp::socket> ssl_socket;
 
-session::session(boost::asio::io_service& io_service, Dispatcher* dispatcher)
-  : socket_(io_service) {
+// session::session(boost::asio::io_service& io_service, boost::asio::ssl::context& context, Dispatcher* dispatcher)
+//   : tcpsocket_(io_service) {
+//     dispatcher_ = dispatcher;
+// }
+
+session::session(boost::asio::io_service& io_service, boost::asio::ssl::context& context, Dispatcher* dispatcher)
+  : sslsocket_(io_service, context) {
     dispatcher_ = dispatcher;
+    https = true;
 }
 
-tcp::socket& session::socket() {
-  return socket_;
+
+// tcp::socket& session::tcpsocket() {
+//   return tcpsocket_;
+// }
+
+boost::asio::ssl::stream<boost::asio::ip::tcp::socket>::lowest_layer_type& session::sslsocket() {
+  return sslsocket_.lowest_layer();
 }
 
 void session::start() {
-  BOOST_LOG_TRIVIAL(trace) << "In session::start()";
-  memset(data_, '\0', sizeof(data_));
-  socket_.async_read_some(boost::asio::buffer(data_, max_length),
-      boost::bind(&session::handle_read, this,
-        boost::asio::placeholders::error,
-        boost::asio::placeholders::bytes_transferred));
+  if (https) {
+    BOOST_LOG_TRIVIAL(trace) << "In session::start(), ssl socket";
+    sslsocket_.async_handshake(boost::asio::ssl::stream_base::server,
+        boost::bind(&session::handle_handshake, this,
+          boost::asio::placeholders::error));
+  }
+  // else {
+  //   BOOST_LOG_TRIVIAL(trace) << "In session::start(); tcp socket";
+  //   memset(data_, '\0', sizeof(data_));
+  //   tcpsocket_.async_read_some(boost::asio::buffer(data_, max_length),
+  //       boost::bind(&session::handle_read, this,
+  //         boost::asio::placeholders::error,
+  //         boost::asio::placeholders::bytes_transferred));
+  // }
+  
+}
+
+void session::handle_handshake(const boost::system::error_code& error) {
+  if (!error)
+  {
+    BOOST_LOG_TRIVIAL(trace) << "In session::handle_handshake()";
+    memset(data_, '\0', sizeof(data_));
+    sslsocket_.async_read_some(boost::asio::buffer(data_, max_length),
+        boost::bind(&session::handle_read, this,
+          boost::asio::placeholders::error,
+          boost::asio::placeholders::bytes_transferred));
+  }
+  else
+  {
+    delete this;
+  }
 }
 
 bool session::end_of_request() const {
@@ -39,10 +77,18 @@ void session::append_data() {
   
   // Append data until double CRLF/LF is found.
   // WARNING: Assumes the request is at most `max_length' bytes.
-  socket_.async_read_some(boost::asio::buffer(&data_[strlen(data_)], max_length),
-      boost::bind(&session::handle_read, this,
-	boost::asio::placeholders::error,
-	boost::asio::placeholders::bytes_transferred));
+  if (https) {
+    sslsocket_.async_read_some(boost::asio::buffer(&data_[strlen(data_)], max_length),
+        boost::bind(&session::handle_read, this,
+        	boost::asio::placeholders::error,
+        	boost::asio::placeholders::bytes_transferred));
+  }
+  // else {
+  //   tcpsocket_.async_read_some(boost::asio::buffer(&data_[strlen(data_)], max_length),
+  //       boost::bind(&session::handle_read, this,
+  //         boost::asio::placeholders::error,
+  //         boost::asio::placeholders::bytes_transferred));
+  // }
 }
 
 /*
@@ -85,9 +131,16 @@ void session::send_response() {
 	response.body() = "<h1>400 Bad Request</h1>";
 	response.prepare_payload();
 	buffer_ = response;
-	http::async_write(socket_, buffer_,
+  if (https) {
+    http::async_write(sslsocket_, buffer_,
       boost::bind(&session::handle_write, this,
                   boost::asio::placeholders::error));
+  }
+  // else {
+  //   http::async_write(tcpsocket_, buffer_,
+  //     boost::bind(&session::handle_write, this,
+  //                 boost::asio::placeholders::error));
+  // }
 	return;
   }
   
@@ -104,13 +157,24 @@ void session::send_response() {
     handled_requests[uri].push_back(buffer_.result_int());
     BOOST_LOG_TRIVIAL(trace) << "Body of response: " << buffer_.body();
     std::string handler_name = get_handler_name(uri);
-    std::string request_ip = socket_.remote_endpoint().address().to_string();
-    BOOST_LOG_TRIVIAL(trace) << "[ResponseMetrics] request_ip:" << request_ip << " request_path:" << uri 
-      << " matched_handler:" << handler_name <<  " response_code:" << buffer_.result_int() << std::endl;
+    if (https) {
+      std::string request_ip = sslsocket_.lowest_layer().remote_endpoint().address().to_string();
+      BOOST_LOG_TRIVIAL(trace) << "[ResponseMetrics] request_ip:" << request_ip << " request_path:" << uri 
+        << " matched_handler:" << handler_name <<  " response_code:" << buffer_.result_int() << std::endl;
 
-    http::async_write(socket_, buffer_,
-      boost::bind(&session::handle_write, this,
-                  boost::asio::placeholders::error));
+      http::async_write(sslsocket_, buffer_,
+        boost::bind(&session::handle_write, this,
+                    boost::asio::placeholders::error));
+    }
+    // else {
+    //   std::string request_ip = tcpsocket_.remote_endpoint().address().to_string();
+    //   BOOST_LOG_TRIVIAL(trace) << "[ResponseMetrics] request_ip:" << request_ip << " request_path:" << uri 
+    //     << " matched_handler:" << handler_name <<  " response_code:" << buffer_.result_int() << std::endl;
+
+    //   http::async_write(tcpsocket_, buffer_,
+    //     boost::bind(&session::handle_write, this,
+    //                 boost::asio::placeholders::error));
+    // }
   }
   else {
     // This should never be entered since the 404 handler should always
@@ -158,7 +222,13 @@ void session::handle_write(const boost::system::error_code& error)
       << "Response sent, closing socket.";
       // << socket_.remote_endpoint().address().to_string();
     
-    socket_.close();
+    if (https) {
+      sslsocket_.lowest_layer().close();
+    }
+    // else {
+    //   tcpsocket_.close();
+    // }
+    
   }
   else {
     BOOST_LOG_TRIVIAL(trace) << "Deleting in session::handle_write.";

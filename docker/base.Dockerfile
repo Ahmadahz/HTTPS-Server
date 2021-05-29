@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y \
     cmake \
     curl \
     httpie \
+    libssl-dev \
     libboost-log-dev \
     libboost-regex-dev \
     libboost-system-dev \

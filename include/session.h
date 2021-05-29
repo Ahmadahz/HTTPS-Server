@@ -4,19 +4,23 @@
 #include <boost/asio.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/beast/http.hpp>
+#include <boost/asio/ssl.hpp>
 #include "dispatcher.h"
 
 using boost::asio::ip::tcp;
 namespace http = boost::beast::http;
+// typedef boost::asio::ssl::stream<boost::asio::ip::tcp::socket> ssl_socket;
 
 class session {
 public:
-  session(boost::asio::io_service& io_service, Dispatcher* dispatcher);
+  // session(boost::asio::io_service& io_service, Dispatcher* dispatcher);
+  session(boost::asio::io_service& io_service, boost::asio::ssl::context& context, Dispatcher* dispatcher);
   
-  tcp::socket& socket();
+  // tcp::socket& tcpsocket();
+  boost::asio::ssl::stream<boost::asio::ip::tcp::socket>::lowest_layer_type& sslsocket();
   const char* get_data() { return data_; }
   void start();
-
+  void handle_handshake(const boost::system::error_code& error);
   void handle_read(const boost::system::error_code& error,
       size_t bytes_transferred);
   
@@ -34,7 +38,11 @@ private:
   std::string get_handler_name(const std::string& uri) const;
 
   Dispatcher* dispatcher_;
-  tcp::socket socket_;
+
+  bool https = false;
+  // tcp::socket tcpsocket_;
+  boost::asio::ssl::stream<boost::asio::ip::tcp::socket> sslsocket_;
+ 
   
   http::response<http::string_body> buffer_;
   enum { max_length = 1024000 };

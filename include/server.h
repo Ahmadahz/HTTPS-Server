@@ -3,8 +3,10 @@
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/asio/ssl.hpp>
 
 using boost::asio::ip::tcp;
+typedef boost::asio::ssl::stream<boost::asio::ip::tcp::socket> ssl_socket;
 
 #include "session.h"
 #include "dispatcher.h"
@@ -21,6 +23,7 @@ public:
               to this constructor being called. */
   server(session& new_session, boost::asio::io_service& io_service, short port, const NginxConfig &config);
 
+  std::string get_password() const;
   void handle_accept(session* new_session,
       const boost::system::error_code& error);
   
@@ -34,5 +37,6 @@ private:
   Dispatcher* dispatcher_;
   boost::asio::io_service& io_service_;
   tcp::acceptor acceptor_;
+  boost::asio::ssl::context context_;
   Logger* logger_;
 };

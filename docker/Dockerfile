@@ -22,6 +22,7 @@ COPY --from=builder /usr/src/project/build/bin/server .
 COPY --from=builder /usr/src/project/config/static_config_lcl .
 #Copy static data files
 COPY --from=builder /usr/src/project/files .
+COPY --from=builder /usr/src/project/tests/keys .
 # TODO(ahmadhz): Expose some port(s)
 # Note: Add more ports if it is required
 EXPOSE 80

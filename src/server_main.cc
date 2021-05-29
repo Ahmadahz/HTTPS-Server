@@ -13,8 +13,10 @@
 #include <boost/asio.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/asio/ssl.hpp>
 
 using boost::asio::ip::tcp;
+typedef boost::asio::ssl::stream<boost::asio::ip::tcp::socket> ssl_socket;
 
 #include "server.h"
 #include "config_parser.h"
@@ -33,9 +35,8 @@ int main(int argc, char* argv[]) {
 
     if (parser.Parse(argv[1], &out_config)) {
       short port_number;
-	  short ssl_port_number;
-      if (parser.GetPortNumber(out_config, "HTTP", port_number)) {
-		     
+      short ssl_port_number;
+      if (parser.GetPortNumber(out_config, "HTTP", port_number)) {    
         if (parser.GetPortNumber(out_config, "HTTPS", ssl_port_number) && parser.GetKeyPath(out_config))  {
             BOOST_LOG_TRIVIAL(trace) << "Created server listening  on SSL port: " << ssl_port_number;
             BOOST_LOG_TRIVIAL(trace) << "Private path SSL: " << parser.GetSSLPrivateKeyPath();
