@@ -19,7 +19,6 @@ using boost::asio::ip::tcp;
 typedef boost::asio::ssl::stream<boost::asio::ip::tcp::socket> ssl_socket;
 
 #include "server.h"
-#include "https_server.h"
 #include "config_parser.h"
 
 int main(int argc, char* argv[]) {
@@ -49,12 +48,14 @@ int main(int argc, char* argv[]) {
 
         // https://stackoverflow.com/questions/15496950/using-multiple-io-service-objects
         server s(io_service, port_number, out_config);
-        https_server https_s(https_io_service, ssl_port_number, out_config);
 
-        // io_service.run();
+        std::string https = "https";
+        server https_s(https_io_service, ssl_port_number, out_config, https);
+
+        BOOST_LOG_TRIVIAL(trace) << "Before io_service.run() in main";
         boost::thread_group threads;
-        threads.create_thread(boost::bind(&boost::asio::io_service::run, &https_io_service));
-        io_service.run();
+        threads.create_thread(boost::bind(&boost::asio::io_service::run, &io_service));
+        https_io_service.run();
         threads.join_all();
         
         BOOST_LOG_TRIVIAL(trace) << "io_services ran and all work has finished";

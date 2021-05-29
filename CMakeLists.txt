@@ -40,8 +40,6 @@ message(STATUS "OpenSSL version: ${Openssl_VERSION}")
 include_directories(include)
 
 # RESOLVED: Update name and srcs
-add_library(https_session_lib src/https_session.cc)
-add_library(https_server_lib src/https_server.cc)
 add_library(session_lib src/session.cc)
 add_library(server_lib src/server.cc)
 add_library(config_parser src/config_parser.cc)
@@ -50,30 +48,23 @@ add_library(dispatcher src/dispatcher.cc src/echo_handler.cc src/file_handler.cc
 add_library(logger src/logger.cc)
 
 # RESOLVED: Update executable name, srcs, and 
-add_executable(http_server src/http_server_main.cc)
-target_link_libraries(http_server Boost::system Boost::thread Boost::log_setup Boost::log)
-add_executable(https_server src/boost_https_server_main.cc)
-target_link_libraries(https_server Boost::system Boost::thread Boost::log_setup Boost::log OpenSSL::SSL OpenSSL::Crypto)
-add_executable(https_client src/boost_https_client_main.cc)
-target_link_libraries(https_client Boost::system Boost::thread Boost::log_setup Boost::log OpenSSL::SSL OpenSSL::Crypto)
-
 add_executable(server src/server_main.cc)
-target_link_libraries(server server_lib session_lib https_server_lib https_session_lib request_handler dispatcher logger Boost::system Boost::thread Boost::log_setup Boost::log  OpenSSL::SSL OpenSSL::Crypto)
+target_link_libraries(server server_lib session_lib request_handler dispatcher logger Boost::system Boost::thread Boost::log_setup Boost::log  OpenSSL::SSL OpenSSL::Crypto)
 add_executable(config_parser_main src/config_parser_main.cc)
 target_link_libraries(server config_parser)
 target_link_libraries(config_parser_main config_parser Boost::log_setup Boost::log)
 
 # RESOLVED: Update test executable name, srcs, and deps
 add_executable(file_handler_test tests/file_handler_test.cc)
-target_link_libraries(file_handler_test request_handler session_lib https_session_lib config_parser Boost::system Boost::thread Boost::log_setup Boost::log gtest_main)
+target_link_libraries(file_handler_test request_handler session_lib config_parser Boost::system Boost::thread Boost::log_setup Boost::log gtest_main)
 add_executable(dispatcher_test tests/dispatcher_test.cc)
-target_link_libraries(dispatcher_test dispatcher session_lib https_session_lib Boost::system Boost::thread Boost::log_setup Boost::log OpenSSL::SSL OpenSSL::Crypto gtest_main)
+target_link_libraries(dispatcher_test dispatcher session_lib Boost::system Boost::thread Boost::log_setup Boost::log OpenSSL::SSL OpenSSL::Crypto gtest_main)
 add_executable(config_parser_test tests/config_parser_test.cc)
 target_link_libraries(config_parser_test config_parser Boost::log_setup Boost::log OpenSSL::SSL OpenSSL::Crypto gtest_main)
 add_executable(server_test tests/server_test.cc)
-target_link_libraries(server_test server_lib session_lib https_session_lib request_handler dispatcher logger Boost::system Boost::thread Boost::log_setup Boost::log OpenSSL::SSL OpenSSL::Crypto gtest_main gmock_main)
+target_link_libraries(server_test server_lib session_lib request_handler dispatcher logger Boost::system Boost::thread Boost::log_setup Boost::log OpenSSL::SSL OpenSSL::Crypto gtest_main gmock_main)
 add_executable(session_test tests/session_test.cc)
-target_link_libraries(session_test session_lib https_session_lib request_handler dispatcher logger Boost::system Boost::thread Boost::log_setup Boost::log OpenSSL::SSL OpenSSL::Crypto gtest_main)
+target_link_libraries(session_test session_lib request_handler dispatcher logger Boost::system Boost::thread Boost::log_setup Boost::log OpenSSL::SSL OpenSSL::Crypto gtest_main)
 
 # RESOLVED: Update with test binary
 gtest_discover_tests(config_parser_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
@@ -87,4 +78,4 @@ gtest_discover_tests(dispatcher_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DI
 
 # RESOLVED: Update with target/test targets
 include(cmake/CodeCoverageReportConfig.cmake)
-generate_coverage_report(TARGETS config_parser server_lib session_lib https_server_lib https_session_lib request_handler TESTS server_test session_test file_handler_test config_parser_test dispatcher_test)
+generate_coverage_report(TARGETS config_parser server_lib session_lib request_handler TESTS server_test session_test file_handler_test config_parser_test dispatcher_test)
