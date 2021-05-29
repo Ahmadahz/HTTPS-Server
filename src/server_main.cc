@@ -19,6 +19,7 @@ using boost::asio::ip::tcp;
 typedef boost::asio::ssl::stream<boost::asio::ip::tcp::socket> ssl_socket;
 
 #include "server.h"
+#include "https_server.h"
 #include "config_parser.h"
 
 int main(int argc, char* argv[]) {
@@ -29,6 +30,7 @@ int main(int argc, char* argv[]) {
     }
 
     boost::asio::io_service io_service;
+    boost::asio::io_service https_io_service;
 
     NginxConfigParser parser;
     NginxConfig out_config;
@@ -44,11 +46,18 @@ int main(int argc, char* argv[]) {
         }
         BOOST_LOG_TRIVIAL(trace) << "Created server listening on port: " << port_number;
         
-        server s(io_service, port_number, out_config);
 
+        // https://stackoverflow.com/questions/15496950/using-multiple-io-service-objects
+        server s(io_service, port_number, out_config);
+        https_server https_s(https_io_service, ssl_port_number, out_config);
+
+        // io_service.run();
+        boost::thread_group threads;
+        threads.create_thread(boost::bind(&boost::asio::io_service::run, &https_io_service));
         io_service.run();
+        threads.join_all();
         
-        BOOST_LOG_TRIVIAL(trace) << "io_service ran and all work has finished";
+        BOOST_LOG_TRIVIAL(trace) << "io_services ran and all work has finished";
       }
       else {
         BOOST_LOG_TRIVIAL(error) << "In main: Port number error";

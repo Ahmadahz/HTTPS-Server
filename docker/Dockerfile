@@ -25,7 +25,7 @@ COPY --from=builder /usr/src/project/files .
 COPY --from=builder /usr/src/project/tests/keys .
 # TODO(ahmadhz): Expose some port(s)
 # Note: Add more ports if it is required
-EXPOSE 80
+EXPOSE 443 80
 
 # Use ENTRYPOINT to specify the binary name
 # TODO(ahmadhz): Update with real server name 

@@ -4,10 +4,8 @@
 #include <boost/asio.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/thread/thread.hpp>
-#include <boost/asio/ssl.hpp>
 
 using boost::asio::ip::tcp;
-typedef boost::asio::ssl::stream<boost::asio::ip::tcp::socket> ssl_socket;
 
 #include "server.h"
 #include "logger.h"
@@ -19,21 +17,7 @@ void start_session(boost::asio::io_service& io_service, session* s) {
 
 server::server(boost::asio::io_service& io_service, short port, const NginxConfig &config)
   : io_service_(io_service),
-    acceptor_(io_service, tcp::endpoint(tcp::v4(), port)),
-    context_(boost::asio::ssl::context::sslv23) {
-  BOOST_LOG_TRIVIAL(trace) << "In server constructor";
-  context_.set_options(
-        boost::asio::ssl::context::default_workarounds
-        | boost::asio::ssl::context::no_sslv2
-        | boost::asio::ssl::context::single_dh_use);
-  context_.set_password_callback(boost::bind(&server::get_password, this));
-  BOOST_LOG_TRIVIAL(trace) << "Before certificate";
-  context_.use_certificate_chain_file("localhost.pem");
-  BOOST_LOG_TRIVIAL(trace) << "Before key";
-  context_.use_private_key_file("localhost-key.pem", boost::asio::ssl::context::pem);
-  BOOST_LOG_TRIVIAL(trace) << "Before dh file";
-  context_.use_tmp_dh_file("dhparam4096.pem");
-  BOOST_LOG_TRIVIAL(trace) << "In server constructor, dealt with keys and certs";
+    acceptor_(io_service, tcp::endpoint(tcp::v4(), port)) {
   dispatcher_ = new Dispatcher(config);
   logger_ = new Logger();
   start_accept();
@@ -41,39 +25,21 @@ server::server(boost::asio::io_service& io_service, short port, const NginxConfi
 
 server::server(session& new_session, boost::asio::io_service& io_service, short port, const NginxConfig &config)
   : io_service_(io_service),
-    acceptor_(io_service, tcp::endpoint(tcp::v4(), port)),
-    context_(boost::asio::ssl::context::sslv23) {
-  BOOST_LOG_TRIVIAL(trace) << "In server constructor, threads";
-  context_.set_options(
-        boost::asio::ssl::context::default_workarounds
-        | boost::asio::ssl::context::no_sslv2
-        | boost::asio::ssl::context::single_dh_use);
-  context_.set_password_callback(boost::bind(&server::get_password, this));
-  BOOST_LOG_TRIVIAL(trace) << "Before certificate";
-  context_.use_certificate_chain_file("keys/localhost.pem");
-  BOOST_LOG_TRIVIAL(trace) << "Before key";
-  context_.use_private_key_file("keys/localhost-key.pem", boost::asio::ssl::context::pem);
-  BOOST_LOG_TRIVIAL(trace) << "Before dh file";
-  context_.use_tmp_dh_file("keys/dhparam4096.pem");
-  BOOST_LOG_TRIVIAL(trace) << "In server constructor, threads, dealt with keys and certs";
+    acceptor_(io_service, tcp::endpoint(tcp::v4(), port)) {
   dispatcher_ = new Dispatcher(config);
   logger_ = new Logger();
   start_accept(&new_session);
 }
 
-std::string server::get_password() const {
-  return "test";
-}
-
 void server::start_accept() {
-  session* new_session = new session(io_service_, context_, dispatcher_);
+  session* new_session = new session(io_service_, dispatcher_);
   start_accept(new_session);
 }
 
 void server::start_accept(session* new_session) {
   BOOST_LOG_TRIVIAL(trace) << "In server::start_accept()";
 
-  acceptor_.async_accept(new_session->sslsocket(),
+  acceptor_.async_accept(new_session->socket(),
       boost::bind(&server::handle_accept, this, new_session,
                   boost::asio::placeholders::error));
   
