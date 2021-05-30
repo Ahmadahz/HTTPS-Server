@@ -48,7 +48,7 @@ ProxyHandler::ProxyHandler(const std::string& location_path, const NginxConfig& 
     for (auto const& statement : config.statements_) {
         if (statement->tokens_[0] == "host" && statement->tokens_.size() == 2) {
             auto url_components = parse_url(statement->tokens_[1]);
-            if(std::get<0>(url_components) != "http") {
+            if(std::get<0>(url_components) != "http" && std::get<0>(url_components) != "https") {
               BOOST_LOG_TRIVIAL(error) << "Unspecified or unsupported network protocol\n";
               throw std::runtime_error("bad config file\n");
             }
@@ -96,8 +96,12 @@ http::response<http::string_body> issue_outside_request(std::string const& host,
       BOOST_LOG_TRIVIAL(trace) << "Redirection found\n";
       std::string redirected_url = std::string(response[http::field::location].data(), response[http::field::location].size());
       auto url_components = parse_url(redirected_url);
-      if(std::get<0>(url_components) != "http") return response;
-      else return issue_outside_request(std::get<1>(url_components), "80", std::get<2>(url_components));
+      if(std::get<0>(url_components) != "http") {
+          return response;
+      }
+      else {
+          return issue_outside_request(std::get<1>(url_components), "80", std::get<2>(url_components));
+      }
     }
     else return response;
 }

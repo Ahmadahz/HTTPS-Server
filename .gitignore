@@ -18,4 +18,6 @@ tests/boost_test.cc
 tests/googletest/
 tests/keys/ssl_cert2.pem
 tests/keys/ssl_key2.key
+tests/keys/localhost-key.pem
+tests/keys/localhost.pem
 tests/server_0.log

@@ -50,6 +50,11 @@ location /sleep/ SleepHandler {
 }
 
 location /proxy/ ProxyHandler {
+    host https://www.cs130.org/; #extra / will be removed during parsing
+    port 80;
+}
+
+location /old/ ProxyHandler {
     host http://www.example.com/; #extra / will be removed during parsing
     port 80;
 }
