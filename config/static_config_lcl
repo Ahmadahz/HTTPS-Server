@@ -4,6 +4,9 @@ ssl-port 443;
 private_key_root tests/keys/ssl_key.key;
 public_key_root tests/keys/ssl_cert.pem;
 
+location /.well-known/ FileHandler {
+    root /certificate;
+}
 
 location /static/ FileHandler {
     root /bar;
