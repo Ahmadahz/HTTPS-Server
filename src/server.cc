@@ -55,7 +55,7 @@ server::server(boost::asio::io_service& io_service, short port, const NginxConfi
     context_.set_password_callback(boost::bind(&server::get_password, this));
     BOOST_LOG_TRIVIAL(trace) << "Before certificate";
     // context_.use_certificate_chain_file("localhost.pem");
-    context_.use_certificate_chain_file("domain.crt");
+    context_.use_certificate_chain_file("domain_certs.pem");
     BOOST_LOG_TRIVIAL(trace) << "Before key";
     // context_.use_private_key_file("localhost-key.pem", boost::asio::ssl::context::pem);
     context_.use_private_key_file("domain.key", boost::asio::ssl::context::pem);
@@ -90,7 +90,7 @@ server::server(session& new_session, boost::asio::io_service& io_service, short 
     context_.set_password_callback(boost::bind(&server::get_password, this));
     BOOST_LOG_TRIVIAL(trace) << "Before certificate";
     // context_.use_certificate_chain_file("localhost.pem");
-    context_.use_certificate_chain_file("domain.crt");
+    context_.use_certificate_chain_file("domain_certs.pem");
     BOOST_LOG_TRIVIAL(trace) << "Before key";
     // context_.use_private_key_file("localhost-key.pem", boost::asio::ssl::context::pem);
     context_.use_private_key_file("domain.key", boost::asio::ssl::context::pem);
