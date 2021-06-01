@@ -12,6 +12,7 @@ typedef boost::asio::ssl::stream<boost::asio::ip::tcp::socket> ssl_socket;
 
 #include "server.h"
 #include "logger.h"
+#include "config_parser.h"
 
 void start_session(boost::asio::io_service& io_service, session* s) {
   s->start();
