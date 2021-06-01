@@ -2,7 +2,9 @@ FROM lark:base as builder
 
 # Share work directory
 COPY . /usr/src/project
-WORKDIR /usr/src/project/build_coverage
+WORKDIR /usr/src/project
+COPY tests/keys build_coverage
+WORKDIR build_coverage
 
 RUN pwd
 RUN cmake ..
