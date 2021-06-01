@@ -4,8 +4,9 @@ FROM lark:base as builder
 
 # Share work directory
 COPY . /usr/src/project
-WORKDIR /usr/src/project/build
-ADD ../tests/keys .
+WORKDIR /usr/src/project
+COPY tests/keys build
+WORKDIR build
 
 # Build and test
 RUN cmake ..
