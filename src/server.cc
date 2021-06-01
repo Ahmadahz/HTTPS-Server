@@ -5,6 +5,7 @@
 #include <boost/log/trivial.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/asio/ssl.hpp>
+#include <boost/filesystem.hpp>
 
 using boost::asio::ip::tcp;
 typedef boost::asio::ssl::stream<boost::asio::ip::tcp::socket> ssl_socket;
@@ -47,6 +48,12 @@ server::server(boost::asio::io_service& io_service, short port, const NginxConfi
   BOOST_LOG_TRIVIAL(trace) << "In server constructor 3, before version check";
   BOOST_LOG_TRIVIAL(trace) << "In server constructor 3, version:" << version;
   if (version_ == "https") {
+     
+    NginxConfigParser new_parser;
+    new_parser.GetKeyPath(config);
+    boost::filesystem::path key_p(new_parser.GetSSLPrivateKeyPath());
+    boost::filesystem::path cert_p(new_parser.GetSSLPublicKeyPath());    
+      
     BOOST_LOG_TRIVIAL(trace) << "In server constructor 3, version:" << version_;
     context_.set_options(
           boost::asio::ssl::context::default_workarounds
@@ -55,10 +62,10 @@ server::server(boost::asio::io_service& io_service, short port, const NginxConfi
     context_.set_password_callback(boost::bind(&server::get_password, this));
     BOOST_LOG_TRIVIAL(trace) << "Before certificate";
     // context_.use_certificate_chain_file("localhost.pem");
-    context_.use_certificate_chain_file("domain_certs.pem");
+    context_.use_certificate_chain_file((cert_p.filename()).string());
     BOOST_LOG_TRIVIAL(trace) << "Before key";
     // context_.use_private_key_file("localhost-key.pem", boost::asio::ssl::context::pem);
-    context_.use_private_key_file("domain.key", boost::asio::ssl::context::pem);
+    context_.use_private_key_file((key_p.filename().string()), boost::asio::ssl::context::pem);
     BOOST_LOG_TRIVIAL(trace) << "Before dh file";
     context_.use_tmp_dh_file("dhparam4096.pem");
     BOOST_LOG_TRIVIAL(trace) << "In server constructor 3, dealt with keys and certs";
@@ -82,6 +89,12 @@ server::server(session& new_session, boost::asio::io_service& io_service, short 
   BOOST_LOG_TRIVIAL(trace) << "In server constructor 4, before version check";
   BOOST_LOG_TRIVIAL(trace) << "In server constructor 4, version:" << version;
   if (version_ == "https") {
+      
+    NginxConfigParser new_parser;
+    new_parser.GetKeyPath(config);
+    boost::filesystem::path key_p(new_parser.GetSSLPrivateKeyPath());
+    boost::filesystem::path cert_p(new_parser.GetSSLPublicKeyPath());   
+        
     BOOST_LOG_TRIVIAL(trace) << "In server constructor 4, version:" << version_;
     context_.set_options(
           boost::asio::ssl::context::default_workarounds
@@ -90,10 +103,10 @@ server::server(session& new_session, boost::asio::io_service& io_service, short 
     context_.set_password_callback(boost::bind(&server::get_password, this));
     BOOST_LOG_TRIVIAL(trace) << "Before certificate";
     // context_.use_certificate_chain_file("localhost.pem");
-    context_.use_certificate_chain_file("domain_certs.pem");
+    context_.use_certificate_chain_file((cert_p.filename()).string());
     BOOST_LOG_TRIVIAL(trace) << "Before key";
     // context_.use_private_key_file("localhost-key.pem", boost::asio::ssl::context::pem);
-    context_.use_private_key_file("domain.key", boost::asio::ssl::context::pem);
+    context_.use_private_key_file((key_p.filename().string()), boost::asio::ssl::context::pem);
     BOOST_LOG_TRIVIAL(trace) << "Before dh file";
     context_.use_tmp_dh_file("dhparam4096.pem");
     BOOST_LOG_TRIVIAL(trace) << "In server constructor 4, dealt with keys and certs";

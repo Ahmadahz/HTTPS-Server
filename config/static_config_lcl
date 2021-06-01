@@ -1,8 +1,8 @@
 listen 80;
 
 ssl-port 443;
-private_key_root tests/keys/ssl_key.key;
-public_key_root tests/keys/ssl_cert.pem;
+private_key_root tests/keys/domain.key;
+public_key_root tests/keys/domain_certs.pem;
 
 location /.well-known/ FileHandler {
     root /certificate;
