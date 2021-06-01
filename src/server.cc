@@ -63,8 +63,10 @@ server::server(boost::asio::io_service& io_service, short port, const NginxConfi
     context_.set_password_callback(boost::bind(&server::get_password, this));
     BOOST_LOG_TRIVIAL(trace) << "Before certificate";
     // context_.use_certificate_chain_file("localhost.pem");
+    BOOST_LOG_TRIVIAL(trace) << "Certificate file: " << cert_p.filename().string();
     context_.use_certificate_chain_file((cert_p.filename()).string());
     BOOST_LOG_TRIVIAL(trace) << "Before key";
+    BOOST_LOG_TRIVIAL(trace) << "Key file: " << key_p.filename().string();
     // context_.use_private_key_file("localhost-key.pem", boost::asio::ssl::context::pem);
     context_.use_private_key_file((key_p.filename().string()), boost::asio::ssl::context::pem);
     BOOST_LOG_TRIVIAL(trace) << "Before dh file";
