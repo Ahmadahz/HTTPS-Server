@@ -10,6 +10,10 @@ EX_PATH="./bin/server"
 echo "
 listen 80;
 
+ssl-port 443;
+private_key_root tests/keys/ssl_key.key;
+public_key_root tests/keys/ssl_cert.pem;
+
 location /echo/ EchoHandler {
 }
 
@@ -33,7 +37,7 @@ echo $pid_server
 
 sleep 1
 
-#Checks if the server handles wrong requests
+# Checks if the server handles wrong requests
 response=$(printf '%s\r\n%s\r\n%s\r\n\r\n'            \
 			    "GET HTTP/1.1"                        \
 			   "Host: www.test.com"                   \
@@ -89,7 +93,7 @@ else
     exit 1;
 fi
 
-#proxy handler test
+proxy handler test
 echo -n "Test 4:"
 curl -s http://www.example.com/ > example.html
 curl -s 127.0.0.1:80/proxy/ > test_response.html

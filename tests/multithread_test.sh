@@ -6,6 +6,9 @@ EX_PATH="./bin/server"
 # Make a temp config file
 echo "
 listen 80;
+ssl-port 443;
+private_key_root tests/keys/ssl_key.key;
+public_key_root tests/keys/ssl_cert.pem;
 
 location /echo/ EchoHandler {
 

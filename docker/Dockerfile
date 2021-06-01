@@ -5,10 +5,12 @@ FROM lark:base as builder
 # Share work directory
 COPY . /usr/src/project
 WORKDIR /usr/src/project/build
+COPY ../tests/keys/* /usr/src/project/build
 
 # Build and test
 RUN cmake ..
 RUN make
+# RUN ctest -R integration_test -VV
 RUN ctest --output-on_failure
 
 

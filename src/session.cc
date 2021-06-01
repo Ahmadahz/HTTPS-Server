@@ -36,14 +36,14 @@ ssl_socket::lowest_layer_type& session::sslsocket() {
 
 void session::start() {
   if (version_ == "https") {
-    BOOST_LOG_TRIVIAL(trace) << "In session::start(), ssl socket";
+    BOOST_LOG_TRIVIAL(trace) << "In https_session::start(), ssl socket";
     sslsocket_ptr_->async_handshake(boost::asio::ssl::stream_base::server,
         boost::bind(&session::handle_handshake, this,
           boost::asio::placeholders::error));
   }
   else if (version_ == "http") {
-    BOOST_LOG_TRIVIAL(trace) << "In session::start(); tcp socket";
-    BOOST_LOG_TRIVIAL(trace) << "In session::start()";
+    BOOST_LOG_TRIVIAL(trace) << "In http_session::start(); tcp socket";
+    BOOST_LOG_TRIVIAL(trace) << "In http_session::start()";
     memset(data_, '\0', sizeof(data_));
     socket_.async_read_some(boost::asio::buffer(data_, max_length),
         boost::bind(&session::handle_read, this,
@@ -135,22 +135,24 @@ void session::send_response() {
 
   if (ec) {
     BOOST_LOG_TRIVIAL(error) << "Error 400: The format for HTTP request is wrong.";
-  http::response<http::string_body> response;
-  response.result(400);
-  response.body() = "<h1>400 Bad Request</h1>";
-  response.prepare_payload();
-  buffer_ = response;
-  if (version_ == "https") {
-    http::async_write(*sslsocket_ptr_, buffer_,
-      boost::bind(&session::handle_write, this,
-                  boost::asio::placeholders::error));
-  }
-  else if (version_ == "https") {
-    http::async_write(socket_, buffer_,
-      boost::bind(&session::handle_write, this,
-                  boost::asio::placeholders::error));
-  }
-  return;
+    http::response<http::string_body> response;
+    response.result(400);
+    response.body() = "<h1>400 Bad Request</h1>";
+    response.prepare_payload();
+    buffer_ = response;
+    if (version_ == "https") {
+      http::async_write(*sslsocket_ptr_, buffer_,
+        boost::bind(&session::handle_write, this,
+                    boost::asio::placeholders::error));
+        BOOST_LOG_TRIVIAL(error) << "Handled malformed https request" << std::endl;
+    }
+    else if (version_ == "http") {
+      http::async_write(socket_, buffer_,
+        boost::bind(&session::handle_write, this,
+                    boost::asio::placeholders::error));
+        BOOST_LOG_TRIVIAL(error) << "Handled malformed http request" << std::endl;
+    }
+    return;
   }
   
   http::request<http::string_body> req = parser.get();
@@ -168,7 +170,7 @@ void session::send_response() {
     std::string handler_name = get_handler_name(uri);
     if (version_ == "https") {
       std::string request_ip = sslsocket_ptr_->lowest_layer().remote_endpoint().address().to_string();
-      BOOST_LOG_TRIVIAL(trace) << "[ResponseMetrics] request_ip:" << request_ip << " request_path:" << uri 
+      BOOST_LOG_TRIVIAL(trace) << "[ResponseMetrics] https_ request_ip:" << request_ip << " request_path:" << uri 
         << " matched_handler:" << handler_name <<  " response_code:" << buffer_.result_int() << std::endl;
 
       http::async_write(*sslsocket_ptr_, buffer_,
@@ -177,7 +179,7 @@ void session::send_response() {
     }
     else if (version_ == "http") {
       std::string request_ip = socket_.remote_endpoint().address().to_string();
-      BOOST_LOG_TRIVIAL(trace) << "[ResponseMetrics] request_ip:" << request_ip << " request_path:" << uri 
+      BOOST_LOG_TRIVIAL(trace) << "[ResponseMetrics] http_ request_ip:" << request_ip << " request_path:" << uri 
         << " matched_handler:" << handler_name <<  " response_code:" << buffer_.result_int() << std::endl;
 
       http::async_write(socket_, buffer_,

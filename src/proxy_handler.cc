@@ -107,6 +107,7 @@ http::response<http::string_body> issue_outside_request(std::string const& host,
 }
 
 http::response<http::string_body> ProxyHandler::handle_request(const http::request<http::string_body>& request) {
+    BOOST_LOG_TRIVIAL(trace) << "In ProxyHandler::handle_request method" << std::endl;
     std::string target = std::string(request.target().data(), request.target().size()).substr(prefix.length());
     if (target == "") target = "/";
     auto response = issue_outside_request(host, port, target);
