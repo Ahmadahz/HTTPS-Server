@@ -5,9 +5,7 @@ FROM lark:base as builder
 # Share work directory
 COPY . /usr/src/project
 WORKDIR /usr/src/project/build
-# COPY ../tests/keys/domain.key .
-# COPY ../tests/keys/domain_certs.pem .
-COPY ../tests/keys .
+ADD ../tests/keys .
 
 # Build and test
 RUN cmake ..
