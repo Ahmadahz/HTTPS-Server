@@ -1,6 +1,7 @@
 listen 80;
 
 ssl-port 443;
+
 private_key_root domain.key;
 public_key_root domain_certs.pem;
 

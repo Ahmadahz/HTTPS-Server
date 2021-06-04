@@ -11,7 +11,7 @@ WORKDIR build
 # Build and test
 RUN cmake ..
 RUN make
-# RUN ctest -R integration_test -VV
+# RUN ctest -R https_test -VV
 RUN ctest --output-on_failure
 
 
