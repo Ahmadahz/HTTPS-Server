@@ -6,8 +6,10 @@
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
+#include <boost/asio/ssl/stream.hpp>
 #include <boost/asio/connect.hpp>
 #include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/ssl.hpp>
 
 //stb lib
 #include <functional>
@@ -17,6 +19,7 @@
 
 
 using tcp = boost::asio::ip::tcp;
+typedef boost::asio::ssl::stream<boost::asio::ip::tcp::socket> ssl_socket;
 
 /*
 Extract protocol, host, and path from a given url.
@@ -72,20 +75,46 @@ http::response<http::string_body> issue_outside_request(std::string const& host,
     // This one is modified from boost official website
     http::response<http::string_body> response;
     try {
-        boost::asio::io_context ioc;
-        tcp::resolver resolver(ioc);
-        boost::beast::tcp_stream stream(ioc);
-        auto const results = resolver.resolve(host, port);
-        stream.connect(results);
-        http::request<http::string_body> req{ http::verb::get, target, 11 };
-        req.set(http::field::host, host);
-        http::write(stream, req);
-        boost::beast::flat_buffer buffer;
-        http::read(stream, buffer, response);
-        boost::beast::error_code ec;
-        stream.socket().shutdown(tcp::socket::shutdown_both, ec);
-        if (ec && ec != boost::beast::errc::not_connected)
-            throw boost::beast::system_error{ ec };
+        if (port == "80") {
+            boost::asio::io_context ioc;
+            tcp::resolver resolver(ioc);
+            boost::beast::tcp_stream stream(ioc);
+            auto const results = resolver.resolve(host, port);
+            stream.connect(results);
+            http::request<http::string_body> req{ http::verb::get, target, 11 };
+            req.set(http::field::host, host);
+            http::write(stream, req);
+            boost::beast::flat_buffer buffer;
+            http::read(stream, buffer, response);
+            boost::beast::error_code ec;
+            stream.socket().shutdown(tcp::socket::shutdown_both, ec);
+            if (ec && ec != boost::beast::errc::not_connected)
+                throw boost::beast::system_error{ ec };
+        }
+        else if (port == "443") {
+            BOOST_LOG_TRIVIAL(trace) << "Handling https redirect" << std::endl;
+            boost::asio::io_context ioc;
+            tcp::resolver resolver(ioc);
+            tcp::resolver::query query(host, port);
+            tcp::resolver::iterator iterator = resolver.resolve(query);
+            boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
+            ctx.set_default_verify_paths();
+            //https://www.boost.org/doc/libs/1_61_0/doc/html/boost_asio/overview/ssl.html
+            ssl_socket sock(ioc, ctx);
+            boost::asio::connect(sock.lowest_layer(), iterator);
+            sock.lowest_layer().set_option(tcp::no_delay(true));
+            sock.handshake(ssl_socket::client);
+            BOOST_LOG_TRIVIAL(trace) << "After handshake" << std::endl;
+            http::request<http::string_body> req{ http::verb::get, target, 11 };
+            req.set(http::field::host, host);
+            http::write(sock, req);
+            boost::beast::flat_buffer buffer;
+            http::read(sock, buffer, response);
+            boost::beast::error_code ec;
+            sock.lowest_layer().close();
+            BOOST_LOG_TRIVIAL(trace) << "SSL socket shutdown" << std::endl;
+        }
+        
     }
     catch (std::exception const& e)
     {
@@ -96,11 +125,16 @@ http::response<http::string_body> issue_outside_request(std::string const& host,
       BOOST_LOG_TRIVIAL(trace) << "Redirection found\n";
       std::string redirected_url = std::string(response[http::field::location].data(), response[http::field::location].size());
       auto url_components = parse_url(redirected_url);
-      if(std::get<0>(url_components) != "http") {
-          return response;
+      if(std::get<0>(url_components) != "http" && std::get<0>(url_components) != "https") {
+        BOOST_LOG_TRIVIAL(error) << "Error: Redirection into non http or https"<< std::endl;
+        return response;
+      }
+      else if (std::get<0>(url_components) == "https") {
+        BOOST_LOG_TRIVIAL(trace) << "https redirection:" << std::get<1>(url_components) << ", " << std::get<2>(url_components) << std::endl;
+        return issue_outside_request(std::get<1>(url_components), "443", std::get<2>(url_components));
       }
       else {
-          return issue_outside_request(std::get<1>(url_components), "80", std::get<2>(url_components));
+        return issue_outside_request(std::get<1>(url_components), "80", std::get<2>(url_components));
       }
     }
     else return response;

@@ -49,7 +49,8 @@ add_library(logger src/logger.cc)
 
 # RESOLVED: Update executable name, srcs, and 
 add_executable(server src/server_main.cc)
-target_link_libraries(server server_lib session_lib request_handler dispatcher logger Boost::system Boost::thread Boost::log_setup Boost::log  OpenSSL::SSL OpenSSL::Crypto)
+target_link_libraries(request_handler OpenSSL::SSL OpenSSL::Crypto)
+target_link_libraries(server server_lib session_lib request_handler dispatcher logger Boost::system Boost::thread Boost::log_setup Boost::log OpenSSL::SSL OpenSSL::Crypto)
 add_executable(config_parser_main src/config_parser_main.cc)
 target_link_libraries(server config_parser)
 target_link_libraries(config_parser_main config_parser Boost::log_setup Boost::log)
