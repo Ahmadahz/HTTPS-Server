@@ -89,37 +89,9 @@ server::server(session& new_session, boost::asio::io_service& io_service, short 
     acceptor_(io_service, tcp::endpoint(tcp::v4(), port)),
     context_(boost::asio::ssl::context::sslv23),
     version_(version) {
-  BOOST_LOG_TRIVIAL(trace) << "In server constructor 4, before version check";
-  BOOST_LOG_TRIVIAL(trace) << "In server constructor 4, version:" << version;
-  if (version_ == "https") {
-      
-    NginxConfigParser new_parser;
-    new_parser.GetKeyPath(config);
-    boost::filesystem::path key_p(new_parser.GetSSLPrivateKeyPath());
-    boost::filesystem::path cert_p(new_parser.GetSSLPublicKeyPath());   
-        
-    BOOST_LOG_TRIVIAL(trace) << "In server constructor 4, version:" << version_;
-    context_.set_options(
-          boost::asio::ssl::context::default_workarounds
-          | boost::asio::ssl::context::no_sslv2
-          | boost::asio::ssl::context::single_dh_use);
-    context_.set_password_callback(boost::bind(&server::get_password, this));
-    BOOST_LOG_TRIVIAL(trace) << "Before certificate";
-    // context_.use_certificate_chain_file("localhost.pem");
-    context_.use_certificate_chain_file((cert_p.filename()).string());
-    BOOST_LOG_TRIVIAL(trace) << "Before key";
-    // context_.use_private_key_file("localhost-key.pem", boost::asio::ssl::context::pem);
-    context_.use_private_key_file((key_p.filename().string()), boost::asio::ssl::context::pem);
-    BOOST_LOG_TRIVIAL(trace) << "Before dh file";
-    context_.use_tmp_dh_file("dhparam4096.pem");
-    BOOST_LOG_TRIVIAL(trace) << "In server constructor 4, dealt with keys and certs";
-  }
-  else if (version_ == "http") {
-    BOOST_LOG_TRIVIAL(trace) << "In server constructor 4, version:" << version_;
-  }
-  else {
-    BOOST_LOG_TRIVIAL(error) << "Version given to server is not supported. Only http or https supported.";
-  }
+  
+  BOOST_LOG_TRIVIAL(trace) << "In server constructor 4, version:" << version_;
+  
   dispatcher_ = new Dispatcher(config);
   logger_ = new Logger();
   start_accept(&new_session);

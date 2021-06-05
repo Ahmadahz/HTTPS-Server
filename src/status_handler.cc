@@ -29,22 +29,23 @@ std::map<std::string, int> StatusHandler::condense() {
   Splits a string s with delimiter c and returns a vector containing each string split by the delimiter
 */
 const std::vector<std::string> StatusHandler::split(const std::string& s, const char& c) {
-	std::string buff;
-	std::vector<std::string> v;
-	for(auto n:s) {
-		if(n != c) {
-      buff+=n; 
+  std::string buff;
+  std::vector<std::string> v;
+  for (auto n : s) {
+    if (n != c) {
+      buff += n; 
     } 
-    else if(n == c && buff != "") { 
+    else if (n == c && buff != "") { 
       v.push_back(buff); 
       buff = ""; 
     }
-	}
-	if(buff != "") {
+  }
+  
+  if (buff != "") {
     v.push_back(buff);
   }
-	
-	return v;
+  
+  return v;
 }
 
 http::response<http::string_body> StatusHandler::handle_request(const http::request<http::string_body>& request) {

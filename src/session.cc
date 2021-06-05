@@ -66,11 +66,11 @@ void session::handle_handshake(const boost::system::error_code& error) {
   {
     BOOST_LOG_TRIVIAL(trace) << "In session::handle_handshake(): Handshake error: " << error.message();
     if (error.value() == ERR_PACK(ERR_LIB_SSL, ERR_GET_FUNC(error.value()), SSL_R_HTTP_REQUEST)) {
-        BOOST_LOG_TRIVIAL(error) << "Http request on ssl port";
-        delete this;
+      BOOST_LOG_TRIVIAL(error) << "Http request on ssl port";
+      delete this;
     }
     else {
-        delete this;
+      delete this;
     }
   }
 }
@@ -160,38 +160,35 @@ void session::send_response() {
   std::string uri(req.target().data(), req.target().size());
   
   RequestHandler* handler = dispatcher_->get_request_handler(uri);
-  if (handler) {
-    BOOST_LOG_TRIVIAL(trace) << "In session::send_response: Request handler found for: " << uri;
-    
-    buffer_ = handler->handle_request(req);
-    request_count++;
-    handled_requests[uri].push_back(buffer_.result_int());
-    BOOST_LOG_TRIVIAL(trace) << "Body of response: " << buffer_.body();
-    std::string handler_name = get_handler_name(uri);
-    if (version_ == "https") {
-      std::string request_ip = sslsocket_ptr_->lowest_layer().remote_endpoint().address().to_string();
-      BOOST_LOG_TRIVIAL(trace) << "[ResponseMetrics] https_ request_ip:" << request_ip << " request_path:" << uri 
-        << " matched_handler:" << handler_name <<  " response_code:" << buffer_.result_int() << std::endl;
 
-      http::async_write(*sslsocket_ptr_, buffer_,
-        boost::bind(&session::handle_write, this,
-                    boost::asio::placeholders::error));
-    }
-    else if (version_ == "http") {
-      std::string request_ip = socket_.remote_endpoint().address().to_string();
-      BOOST_LOG_TRIVIAL(trace) << "[ResponseMetrics] http_ request_ip:" << request_ip << " request_path:" << uri 
-        << " matched_handler:" << handler_name <<  " response_code:" << buffer_.result_int() << std::endl;
+  BOOST_LOG_TRIVIAL(trace) << "In session::send_response: Request handler found for: " << uri;
 
-      http::async_write(socket_, buffer_,
-        boost::bind(&session::handle_write, this,
-                    boost::asio::placeholders::error));
-    }
+  buffer_ = handler->handle_request(req);
+  request_count++;
+  handled_requests[uri].push_back(buffer_.result_int());
+  BOOST_LOG_TRIVIAL(trace) << "Body of response: " << buffer_.body();
+  std::string handler_name = get_handler_name(uri);
+  if (version_ == "https") {
+    std::string request_ip = sslsocket_ptr_->lowest_layer().remote_endpoint().address().to_string();
+    BOOST_LOG_TRIVIAL(trace) << "[ResponseMetrics] https_ request_ip:" << request_ip
+			     << " request_path:" << uri
+			     << " matched_handler:" << handler_name
+			     << " response_code:" << buffer_.result_int() << std::endl;
+
+    http::async_write(*sslsocket_ptr_, buffer_,
+      boost::bind(&session::handle_write, this,
+		  boost::asio::placeholders::error));
   }
-  else {
-    // This should never be entered since the 404 handler should always
-    // be created from get_request_handler in exceptional cases.
-    
-    BOOST_LOG_TRIVIAL(info) << "In session::send_response: No request handler found for: " << uri;
+  else if (version_ == "http") {
+    std::string request_ip = socket_.remote_endpoint().address().to_string();
+    BOOST_LOG_TRIVIAL(trace) << "[ResponseMetrics] http_ request_ip:" << request_ip
+			     << " request_path:" << uri
+			     << " matched_handler:" << handler_name
+			     << " response_code:" << buffer_.result_int() << std::endl;
+
+    http::async_write(socket_, buffer_,
+      boost::bind(&session::handle_write, this,
+		  boost::asio::placeholders::error));
   }
 }
 
@@ -223,10 +220,6 @@ void session::handle_read(const boost::system::error_code& error,
 void session::handle_write(const boost::system::error_code& error)
 {
   if (!error) {
-    // TODO(?): Decide for certain if socket should be closed after receiving
-    //          the signal for the end of the first request.
-    //          If so, rename this function to something appropriate.
-    
     memset(data_, '\0', sizeof(data_));
     
     BOOST_LOG_TRIVIAL(trace)
