@@ -57,7 +57,7 @@ target_link_libraries(config_parser_main config_parser Boost::log_setup Boost::l
 
 # RESOLVED: Update test executable name, srcs, and deps
 add_executable(file_handler_test tests/file_handler_test.cc)
-target_link_libraries(file_handler_test request_handler session_lib config_parser Boost::system Boost::thread Boost::log_setup Boost::log gtest_main)
+target_link_libraries(file_handler_test request_handler dispatcher session_lib config_parser Boost::system Boost::thread Boost::log_setup Boost::log gtest_main)
 add_executable(dispatcher_test tests/dispatcher_test.cc)
 target_link_libraries(dispatcher_test dispatcher session_lib Boost::system Boost::thread Boost::log_setup Boost::log OpenSSL::SSL OpenSSL::Crypto gtest_main)
 add_executable(config_parser_test tests/config_parser_test.cc)
@@ -80,4 +80,4 @@ add_test(NAME https_test COMMAND ${BASH_PROGRAM} ${CMAKE_CURRENT_SOURCE_DIR}/tes
 
 # RESOLVED: Update with target/test targets
 include(cmake/CodeCoverageReportConfig.cmake)
-generate_coverage_report(TARGETS config_parser server_lib session_lib request_handler TESTS server_test session_test file_handler_test config_parser_test dispatcher_test)
+generate_coverage_report(TARGETS config_parser server_lib session_lib request_handler TESTS server_test session_test file_handler_test config_parser_test dispatcher_test integration_test status_test multithreading_test https_test)

@@ -22,6 +22,10 @@ protected:
     else
       return parser_.Parse(str_to_istream(str), &out_config_);
   }
+
+  bool key_check() {
+    return parser_.GetKeyPath(out_config_);
+  }
 };
 
 TEST_F(NginxParserTest, EmptyConfig) {
@@ -77,6 +81,13 @@ TEST_F(NginxParserTest, QuoteWhitespaceConfig) {
 
 TEST_F(NginxParserTest, MalformedConfig) {
   EXPECT_FALSE(parser_check("http {{ listen 8080; }}"));
+}
+
+TEST_F(NginxParserTest, ParseKeys) {
+  EXPECT_TRUE(parser_check("private_key_root privroot; public_key_root pubroot;"));
+  EXPECT_TRUE(key_check());
+  EXPECT_EQ(parser_.GetSSLPrivateKeyPath(), "privroot");
+  EXPECT_EQ(parser_.GetSSLPublicKeyPath(), "pubroot");
 }
 
 
